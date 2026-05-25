@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #F6F3EE;
+  --color-ink: #191714;
+  --color-linen: #EFEAE2;
+  --color-stone: #CEC8BF;
+  --color-terracotta: #C04E18;
+  --color-temple-gold: #7A6648;
+
+  --font-bebas: var(--font-bebas-neue);
+  --font-rajdhani: var(--font-rajdhani);
+  --font-mono: var(--font-ibm-plex-mono);
+  --font-devanagari: var(--font-noto-sans-devanagari);
+  --font-korean: var(--font-noto-sans-kr);
+}
+
+:root {
+  --dur-fast: 0.25s;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  overflow-x: hidden;
+}
+
+@layer utilities {
+  .ticker-animation {
+    animation: ticker 30s linear infinite;
+  }
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

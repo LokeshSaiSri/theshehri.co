@@ -1,0 +1,6 @@
+{
+  "name": "The Shehri Co.",
+  "description": "India's first bottoms-only streetwear label. Editorial Brutalism meets Indian Street Archive.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
