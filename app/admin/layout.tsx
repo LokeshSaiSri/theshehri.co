@@ -6,7 +6,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, BarChart2,
   Activity, Zap, Megaphone, RotateCcw, Bell, Settings,
-  LogOut, Menu, X, ChevronRight,
+  LogOut, Menu, X, ChevronRight, ClipboardList,
 } from 'lucide-react';
 
 const NAV = [
@@ -17,6 +17,7 @@ const NAV = [
   { href: '/admin/analytics',  label: 'Analytics',  icon: BarChart2 },
   { href: '/admin/footfall',   label: 'Footfall',   icon: Activity },
   { href: '/admin/drops',      label: 'Drops',      icon: Zap },
+  { href: '/admin/preorders',  label: 'Preorders',  icon: ClipboardList },
   { href: '/admin/broadcast',  label: 'Broadcast',  icon: Megaphone },
   { href: '/admin/returns',    label: 'Returns',    icon: RotateCcw },
   { href: '/admin/alerts',     label: 'Alerts',     icon: Bell },

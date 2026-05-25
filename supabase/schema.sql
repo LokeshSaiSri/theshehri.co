@@ -102,6 +102,16 @@ CREATE TABLE IF NOT EXISTS drops (
   created_at   timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS preorders (
+  id         uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name       text NOT NULL,
+  email      text NOT NULL,
+  phone      text,
+  product    text,
+  size       text,
+  created_at timestamptz DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS broadcasts (
   id          uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   type        text NOT NULL CHECK (type IN ('email','whatsapp')),
