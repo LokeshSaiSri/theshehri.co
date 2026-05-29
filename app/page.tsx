@@ -285,7 +285,9 @@ export default function Home() {
           
           <div className="relative z-20 mb-8 mt-auto md:mt-0">
             <h1 className="font-bebas text-7xl md:text-[5rem] lg:text-[6rem] xl:text-[7rem] text-ink leading-[0.85]">
-              FIT WITH<br/>NO LOGO.
+              FOR THE <span className="text-terracotta">SHEHRI</span>&apos;S,
+              <br />
+              BY THE <span className="text-terracotta">SHEHRI</span>&apos;S.
             </h1>
           </div>
           
@@ -363,12 +365,67 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* SECTION 4: THE DROP */}
+      {/* SECTION 4: BRAND MANIFESTO */}
+      <section className="bg-ink w-full">
+        <FadeInSection className="max-w-[1400px] mx-auto py-32 md:py-40 px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
+          <div className="flex flex-col w-full">
+            <h2 className="font-bebas text-paper text-[5rem] md:text-[6rem] lg:text-[7rem] leading-[0.9] mb-12 md:mb-16 uppercase break-words pt-2">
+              TU.
+              <br />
+              ASLI.
+              <br />
+              <span className="text-terracotta">SHEHRI.</span>
+              <br />
+              HAI.
+            </h2>
+            <div className="w-full h-px bg-temple-gold opacity-50"></div>
+            <div className="mt-8">
+              <Link
+                href="/about"
+                className="inline-flex items-center justify-center border border-paper text-paper font-rajdhani text-[0.8rem] font-bold px-8 py-3.5 uppercase tracking-[0.2em] hover:bg-paper hover:text-ink transition-colors duration-300"
+              >
+                ABOUT US <span className="font-mono font-normal ml-2 text-xs">↗</span>
+              </Link>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start md:mt-4">
+            <div className="font-mono text-[0.95rem] text-stone/80 leading-[1.9] mb-16 whitespace-pre-line tracking-tight">
+{`The Shehri Co. makes bottoms.
+That's it. That's everything.
+
+Two fits. Korean and Linen.
+Structured and easy.
+Both limited. Neither restocked.
+
+We don't do logos.
+We don't do discounts.
+We don't do restocks.
+
+Wear it. Or don't.
+But once it's gone —
+it's gone.`}
+            </div>
+            <div className="font-rajdhani text-[0.8rem] font-bold text-terracotta tracking-[0.3em] uppercase">
+              DELHI NCR · INDIA
+            </div>
+          </div>
+        </FadeInSection>
+      </section>
+
+      {/* SECTION 5: THE DROP */}
       <FadeInSection className="py-16 md:py-20 px-6 md:px-12 max-w-[1400px] mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
           <h2 className="font-bebas text-ink text-5xl md:text-[6rem] leading-[0.85] pt-2">THE DROP</h2>
-          <div className="font-mono text-[0.8rem] text-ink/70 md:mb-3">
-            {loading ? 'Loading styles...' : `${products.length} style${products.length === 1 ? '' : 's'}. All limited. None coming back.`}
+          <div className="flex flex-col md:items-end gap-4 md:mb-3">
+            <div className="font-mono text-[0.8rem] text-ink/70">
+              {loading ? 'Loading styles...' : `${products.length} style${products.length === 1 ? '' : 's'}. All limited. None coming back.`}
+            </div>
+            <Link
+              href="/shop"
+              className="inline-flex items-center justify-center bg-terracotta text-white font-rajdhani text-[0.78rem] font-bold px-7 py-3 uppercase tracking-[0.18em] hover:bg-ink transition-colors duration-300"
+            >
+              VIEW ALL STYLES <span className="font-mono font-normal ml-2 text-xs">↗</span>
+            </Link>
           </div>
         </div>
         
@@ -410,81 +467,7 @@ export default function Home() {
         </div>
       </FadeInSection>
 
-      {/* SECTION 5: BRAND MANIFESTO */}
-      <section className="bg-ink w-full">
-        <FadeInSection className="max-w-[1400px] mx-auto py-32 md:py-40 px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
-          <div className="flex flex-col w-full">
-            <h2 className="font-bebas text-paper text-[5rem] md:text-[6rem] lg:text-[7rem] leading-[0.9] mb-12 md:mb-16 uppercase break-words pt-2">
-              BUILT<br/>FOR THE<br/>STREET.<br/>NOT FOR<br/>THE FEED.
-            </h2>
-            <div className="w-full h-px bg-temple-gold opacity-50"></div>
-          </div>
-          <div className="flex flex-col justify-start md:mt-4">
-            <div className="font-mono text-[0.95rem] text-stone/80 leading-[1.9] mb-16 whitespace-pre-line tracking-tight">
-{`The Shehri Co. makes bottoms.
-That's it. That's everything.
-
-Two fits. Korean and Linen.
-Structured and easy.
-Both limited. Neither restocked.
-
-We don't do logos.
-We don't do discounts.
-We don't do restocks.
-
-Wear it. Or don't.
-But once it's gone —
-it's gone.`}
-            </div>
-            <div className="font-rajdhani text-[0.8rem] font-bold text-terracotta tracking-[0.3em] uppercase">
-              DELHI NCR · INDIA
-            </div>
-          </div>
-        </FadeInSection>
-      </section>
-
-      {/* SECTION 6: BRAND STORY */}
-      <section className="bg-paper w-full overflow-hidden">
-        <FadeInSection className="py-24 md:py-40 max-w-[1500px] mx-auto grid grid-cols-1 lg:grid-cols-[60%_40%] items-center gap-12 lg:gap-0">
-          <div className="px-6 md:pl-12 lg:pl-24 mb-6 lg:mb-0">
-            <div className="aspect-[16/9] bg-stone flex items-center justify-center w-full relative border border-stone/20 overflow-hidden">
-              <Image 
-                src="/group.png" 
-                alt="Editorial Photograph" 
-                fill 
-                className="object-cover" 
-                referrerPolicy="no-referrer"
-                sizes="(max-width: 1024px) 100vw, 60vw"
-              />
-            </div>
-            <div className="font-mono text-ink/70 text-[0.75rem] mt-6 lg:ml-12 lg:mr-0 pl-4 lg:pl-0 border-l border-stone/30 lg:border-none">
-              Street. Not store.
-            </div>
-          </div>
-          
-          <div className="px-6 md:px-12 lg:px-20 xl:px-24 flex flex-col justify-center">
-            <h2 className="font-bebas text-ink text-6xl md:text-[5rem] leading-[0.9] mb-10 pt-2">WHY ONLY BOTTOMS?</h2>
-            <div className="font-mono text-[0.9rem] text-ink/70 leading-[1.8] mb-12 whitespace-pre-line tracking-tight">
-{`Because nobody talks about them.
-Tops get the collab. Tops get the hype.
-
-The bottom half is where fit lives.
-Where structure shows.
-Where silhouette speaks.
-
-We started there.
-We're staying there.`}
-            </div>
-            <div className="self-start">
-              <button className="border border-ink font-rajdhani text-ink text-[0.85rem] font-bold px-8 py-3.5 uppercase tracking-widest hover:bg-ink hover:text-paper transition-colors duration-300 flex items-center justify-center">
-                READ THE FULL STORY <span className="font-mono font-normal ml-2 text-xs">↗</span>
-              </button>
-            </div>
-          </div>
-        </FadeInSection>
-      </section>
-
-      {/* SECTION 7: KOREAN ACCENT LABEL */}
+      {/* SECTION 6: KOREAN ACCENT LABEL */}
       <FadeInSection className="w-full bg-linen h-[300px] flex flex-col items-center justify-center text-center px-6">
         <div className="font-korean text-[0.85rem] text-ink/70 tracking-[0.3em] mb-4 opacity-80">
           한국 스트리트 구조 · 인도 거리 문화
