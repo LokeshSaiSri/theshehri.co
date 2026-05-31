@@ -3,8 +3,9 @@
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Save, MessageCircle, Loader2, Check, ExternalLink, Printer } from 'lucide-react';
+import { ArrowLeft, Save, MessageCircle, Loader2, Check, ExternalLink, Printer, FileDown } from 'lucide-react';
 import { downloadPackingSlipPDF, orderToPackingSlip } from '@/lib/packing-slip-pdf';
+import { downloadReceiptPDF, orderToReceipt } from '@/lib/receipt-pdf';
 
 interface OrderItem {
   id: string; product_name: string; size: string; color: string | null; price: number; quantity: number;
@@ -16,6 +17,10 @@ interface OrderDetail {
   tracking_number: string | null; tracking_url: string | null;
   admin_notes: string | null; delivery_note: string | null;
   razorpay_order_id: string; razorpay_payment_id: string;
+  source?: string | null;
+  fulfillment_type?: string | null;
+  payment_method?: string | null;
+  source_note?: string | null;
   customer: { name: string; phone: string; email: string; address_line1: string; address_line2: string | null; city: string; state: string; pincode: string };
   items: OrderItem[];
 }
@@ -68,6 +73,9 @@ export default function AdminOrderDetail({ params }: { params: Promise<{ id: str
         </Link>
         <div className="flex items-center gap-3 flex-1 flex-wrap">
           <h1 className="font-bebas text-[#191714] text-3xl tracking-wide">{order.order_number}</h1>
+          {order.source === 'manual' && (
+            <span className="font-mono text-[0.55rem] uppercase tracking-wider px-2 py-1 rounded bg-[#191714] text-white font-bold">Manual</span>
+          )}
           <span className={`font-mono text-[0.62rem] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold ${STATUS_BADGE[order.status]}`}>{order.status}</span>
           <span className={`font-mono text-[0.62rem] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold ${order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{order.payment_status}</span>
           <span className="font-mono text-[0.65rem] text-ink/80">{new Date(order.created_at).toLocaleString('en-IN')}</span>
@@ -83,6 +91,15 @@ export default function AdminOrderDetail({ params }: { params: Promise<{ id: str
         >
           <Printer size={14} />Print packing slip
         </button>
+        {order.source === 'manual' && (
+          <button
+            type="button"
+            onClick={() => downloadReceiptPDF(orderToReceipt({ ...order, items: order.items }))}
+            className="flex items-center gap-2 px-5 py-2.5 font-rajdhani font-bold text-[0.78rem] tracking-widest uppercase rounded-lg transition-colors bg-white border border-[#E5E7EB] text-ink/80 hover:border-gray-400"
+          >
+            <FileDown size={14} />Download receipt
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
@@ -189,8 +206,26 @@ export default function AdminOrderDetail({ params }: { params: Promise<{ id: str
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-5">
             <h2 className="font-rajdhani font-bold text-[#191714] text-sm uppercase tracking-wider mb-3">Payment</h2>
             <div className="space-y-2">
+              {order.payment_method && (
+                <div>
+                  <p className="font-mono text-[0.6rem] text-ink/80 uppercase tracking-widest">Method</p>
+                  <p className="font-mono text-[0.72rem] text-[#191714] uppercase">{order.payment_method}</p>
+                </div>
+              )}
+              {order.fulfillment_type && (
+                <div>
+                  <p className="font-mono text-[0.6rem] text-ink/80 uppercase tracking-widest">Fulfillment</p>
+                  <p className="font-mono text-[0.72rem] text-[#191714] capitalize">{order.fulfillment_type}</p>
+                </div>
+              )}
+              {order.source_note && (
+                <div>
+                  <p className="font-mono text-[0.6rem] text-ink/80 uppercase tracking-widest">Source note</p>
+                  <p className="font-mono text-[0.72rem] text-[#191714]">{order.source_note}</p>
+                </div>
+              )}
               {[['Razorpay Order ID', order.razorpay_order_id], ['Payment ID', order.razorpay_payment_id]].map(([l,v]) => v && (
-                <div key={l}><p className="font-mono text-[0.6rem] text-ink/80 uppercase tracking-widest">{l}</p>
+                <div key={l as string}><p className="font-mono text-[0.6rem] text-ink/80 uppercase tracking-widest">{l}</p>
                   <p className="font-mono text-[0.72rem] text-[#191714] break-all">{v}</p></div>
               ))}
             </div>

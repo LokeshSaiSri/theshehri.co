@@ -14,13 +14,17 @@ export async function GET(req: NextRequest) {
     .from('orders')
     .select(`
       id, order_number, status, payment_status, subtotal, shipping, total,
-      created_at, tracking_number, tracking_url,
+      created_at, tracking_number, tracking_url, source,
       customer:customers(id, name, phone, email, city, state)
     `, { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (status && status !== 'all') query = query.eq('status', status);
+  if (status === 'manual') {
+    query = query.eq('source', 'manual');
+  } else if (status && status !== 'all') {
+    query = query.eq('status', status);
+  }
 
   const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

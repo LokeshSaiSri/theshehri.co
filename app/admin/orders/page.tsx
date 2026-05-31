@@ -15,10 +15,11 @@ const BULK_STATUSES = [
 interface Order {
   id: string; order_number: string; status: string; payment_status: string;
   total: number; created_at: string; tracking_number: string | null;
+  source?: string | null;
   customer: { name: string; phone: string; email: string; city: string };
 }
 
-const STATUS_TABS = ['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+const STATUS_TABS = ['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled', 'manual'];
 
 const STATUS_BADGE: Record<string, string> = {
   pending:    'bg-yellow-100 text-yellow-700',
@@ -131,9 +132,17 @@ export default function AdminOrders() {
           <h1 className="font-bebas text-[#191714] text-4xl tracking-wide">Orders</h1>
           <p className="font-mono text-ink/80 text-[0.72rem] mt-0.5">{total} total orders</p>
         </div>
-        <button onClick={load} className="flex items-center gap-2 bg-white border border-[#E5E7EB] px-4 py-2 rounded-lg font-mono text-[0.72rem] text-ink/80 hover:text-ink transition-colors">
-          <RefreshCw size={12} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/orders/new"
+            className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg font-rajdhani font-bold text-[0.75rem] tracking-widest uppercase hover:bg-[#a84015] transition-colors"
+          >
+            New order +
+          </Link>
+          <button onClick={load} className="flex items-center gap-2 bg-white border border-[#E5E7EB] px-4 py-2 rounded-lg font-mono text-[0.72rem] text-ink/80 hover:text-ink transition-colors">
+            <RefreshCw size={12} /> Refresh
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -241,7 +250,14 @@ export default function AdminOrders() {
                       />
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="font-mono text-[0.78rem] font-medium text-[#191714]">{o.order_number}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-[0.78rem] font-medium text-[#191714]">{o.order_number}</span>
+                        {o.source === 'manual' && (
+                          <span className="font-mono text-[0.55rem] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#191714] text-white font-bold">
+                            Manual
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-3.5">
                       <p className="font-rajdhani font-bold text-[0.82rem] text-[#191714]">{o.customer?.name}</p>
