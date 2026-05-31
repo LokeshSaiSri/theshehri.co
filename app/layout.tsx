@@ -13,6 +13,7 @@ import { CartProvider } from '@/context/CartContext';
 import { PostHogProvider } from '@/providers/PostHogProvider';
 import { siteMetadata } from '@/lib/seo/site-metadata';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { AdminShortcut } from '@/components/admin/AdminShortcut';
 
 /*
 ═══ SHEHRI CO. SEO LAUNCH CHECKLIST ═══
@@ -127,7 +128,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body suppressHydrationWarning>
         <JsonLd />
         <PostHogProvider>
-          <CartProvider>{children}</CartProvider>
+          <CartProvider>
+            <AdminShortcut />
+            {children}
+          </CartProvider>
         </PostHogProvider>
       </body>
     </html>

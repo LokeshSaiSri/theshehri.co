@@ -1,18 +1,47 @@
-export const SHIPPING_RATE = 199;
-export const FREE_SHIPPING_THRESHOLD = 2000;
+export type ShippingConfig = {
+  shippingRate: number;
+  freeShippingAbove: number;
+};
 
-export function calculateShipping(subtotal: number): number {
-  return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_RATE;
+export const DEFAULT_SHIPPING_CONFIG: ShippingConfig = {
+  shippingRate: 199,
+  freeShippingAbove: 2000,
+};
+
+export function calculateShipping(
+  subtotal: number,
+  config: ShippingConfig = DEFAULT_SHIPPING_CONFIG
+): number {
+  return subtotal >= config.freeShippingAbove ? 0 : config.shippingRate;
 }
 
-export function calculateTotal(subtotal: number): number {
-  return subtotal + calculateShipping(subtotal);
+export function calculateTotal(
+  subtotal: number,
+  config: ShippingConfig = DEFAULT_SHIPPING_CONFIG
+): number {
+  return subtotal + calculateShipping(subtotal, config);
 }
 
-export function isEligibleForFreeShipping(subtotal: number): boolean {
-  return subtotal >= FREE_SHIPPING_THRESHOLD;
+export function isEligibleForFreeShipping(
+  subtotal: number,
+  config: ShippingConfig = DEFAULT_SHIPPING_CONFIG
+): boolean {
+  return subtotal >= config.freeShippingAbove;
 }
 
-export function amountUntilFreeShipping(subtotal: number): number {
-  return Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
+export function amountUntilFreeShipping(
+  subtotal: number,
+  config: ShippingConfig = DEFAULT_SHIPPING_CONFIG
+): number {
+  return Math.max(0, config.freeShippingAbove - subtotal);
+}
+
+export function settingsToConfig(settings: {
+  shipping_rate: number;
+  free_shipping_above: number;
+}): ShippingConfig {
+  return {
+    shippingRate: settings.shipping_rate,
+    freeShippingAbove: settings.free_shipping_above,
+  };
 }

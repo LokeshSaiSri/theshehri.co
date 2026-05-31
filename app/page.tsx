@@ -603,6 +603,7 @@ it's gone.`}
             <div className="flex flex-col gap-3 font-rajdhani text-[0.85rem] font-bold uppercase text-stone/70 tracking-[0.2em] leading-loose">
               <Link href="/shop" className="hover:text-paper transition-colors w-fit">SHOP</Link>
               <Link href="/about" className="hover:text-paper transition-colors w-fit">ABOUT</Link>
+              <Link href="/track" className="hover:text-paper transition-colors w-fit">TRACK YOUR ORDER</Link>
               <a href="mailto:hello@theshehrico.in" className="hover:text-paper transition-colors w-fit">CONTACT</a>
             </div>
           </div>

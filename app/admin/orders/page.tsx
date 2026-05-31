@@ -3,6 +3,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Search, ArrowRight, RefreshCw } from 'lucide-react';
+import { AdminToast } from '@/components/admin/AdminToast';
+
+const BULK_STATUSES = [
+  { value: 'processing', label: 'Mark as processing' },
+  { value: 'shipped', label: 'Mark as shipped' },
+  { value: 'delivered', label: 'Mark as delivered' },
+  { value: 'cancelled', label: 'Mark as cancelled' },
+] as const;
 
 interface Order {
   id: string; order_number: string; status: string; payment_status: string;
@@ -37,6 +45,10 @@ export default function AdminOrders() {
   const [status, setStatus]     = useState('all');
   const [search, setSearch]     = useState('');
   const [page, setPage]         = useState(1);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState('processing');
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [toast, setToast]       = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,13 +61,70 @@ export default function AdminOrders() {
     setLoading(false);
   }, [status, search, page]);
 
-  useEffect(() => { setPage(1); }, [status, search]);
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [status, search]);
   useEffect(() => { load(); }, [load]);
+
+  const allOnPageSelected = orders.length > 0 && orders.every((o) => selected.has(o.id));
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (allOnPageSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        orders.forEach((o) => next.delete(o.id));
+        return next;
+      });
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        orders.forEach((o) => next.add(o.id));
+        return next;
+      });
+    }
+  }
+
+  async function applyBulkStatus() {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch('/api/admin/orders/bulk', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selected), status: bulkStatus }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToast({
+          message: `${data.updated} order${data.updated !== 1 ? 's' : ''} updated`,
+          variant: 'success',
+        });
+        setSelected(new Set());
+        await load();
+      } else {
+        setToast({ message: data.error ?? 'Bulk update failed', variant: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Bulk update failed', variant: 'error' });
+    } finally {
+      setBulkLoading(false);
+    }
+  }
 
   const tabCounts = STATUS_TABS.reduce((acc, s) => ({ ...acc, [s]: s === 'all' ? total : undefined }), {} as Record<string, number | undefined>);
 
   return (
     <div className="space-y-6 max-w-[1400px]">
+      {toast && (
+        <AdminToast message={toast.message} variant={toast.variant} onClose={() => setToast(null)} />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -104,11 +173,42 @@ export default function AdminOrders() {
           </div>
         </div>
 
+        {selected.size > 0 && (
+          <div className="px-5 py-3 border-b border-[#F3F4F6] bg-[#FEF8F5] flex flex-wrap items-center gap-3">
+            <span className="font-mono text-[0.68rem] text-ink/80">{selected.size} selected</span>
+            <select
+              value={bulkStatus}
+              onChange={(e) => setBulkStatus(e.target.value)}
+              className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 font-mono text-[0.75rem] focus:outline-none focus:border-terracotta/40"
+            >
+              {BULK_STATUSES.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+            <button
+              onClick={applyBulkStatus}
+              disabled={bulkLoading}
+              className="px-4 py-2 bg-terracotta text-white font-rajdhani font-bold text-[0.75rem] tracking-widest uppercase rounded-lg hover:bg-[#a84015] disabled:opacity-50"
+            >
+              {bulkLoading ? 'Applying…' : 'Apply to selected'}
+            </button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-[#FFFFFF] border-b border-[#F3F4F6]">
+                <th className="px-5 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allOnPageSelected}
+                    onChange={toggleSelectAll}
+                    className="rounded border-[#E5E7EB]"
+                    aria-label="Select all orders on this page"
+                  />
+                </th>
                 {['Order', 'Customer', 'Location', 'Total', 'Payment', 'Status', 'Tracking', 'Time', ''].map(h => (
                   <th key={h} className="px-5 py-3 text-left font-mono text-[0.6rem] uppercase tracking-widest text-ink/80">{h}</th>
                 ))}
@@ -118,6 +218,7 @@ export default function AdminOrders() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-[#F9FAFB]">
+                    <td className="px-5 py-3.5" />
                     {Array.from({ length: 9 }).map((_, j) => (
                       <td key={j} className="px-5 py-3.5">
                         <div className="h-3 bg-[#F3F4F6] rounded animate-pulse w-20" />
@@ -126,10 +227,19 @@ export default function AdminOrders() {
                   </tr>
                 ))
               ) : orders.length === 0 ? (
-                <tr><td colSpan={9} className="text-center py-16 font-mono text-ink/80 text-sm">No orders found</td></tr>
+                <tr><td colSpan={10} className="text-center py-16 font-mono text-ink/80 text-sm">No orders found</td></tr>
               ) : (
                 orders.map(o => (
                   <tr key={o.id} className="border-b border-[#F9FAFB] hover:bg-[#FFFFFF] transition-colors">
+                    <td className="px-5 py-3.5">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(o.id)}
+                        onChange={() => toggleSelect(o.id)}
+                        className="rounded border-[#E5E7EB]"
+                        aria-label={`Select order ${o.order_number}`}
+                      />
+                    </td>
                     <td className="px-5 py-3.5">
                       <span className="font-mono text-[0.78rem] font-medium text-[#191714]">{o.order_number}</span>
                     </td>

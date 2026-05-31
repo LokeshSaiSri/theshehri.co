@@ -3,7 +3,8 @@
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Save, MessageCircle, Loader2, Check, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, MessageCircle, Loader2, Check, ExternalLink, Printer } from 'lucide-react';
+import { downloadPackingSlipPDF, orderToPackingSlip } from '@/lib/packing-slip-pdf';
 
 interface OrderItem {
   id: string; product_name: string; size: string; color: string | null; price: number; quantity: number;
@@ -74,6 +75,13 @@ export default function AdminOrderDetail({ params }: { params: Promise<{ id: str
         <button onClick={save} disabled={!hasChanges || saving}
           className={`flex items-center gap-2 px-5 py-2.5 font-rajdhani font-bold text-[0.78rem] tracking-widest uppercase rounded-lg transition-colors ${saved ? 'bg-green-600 text-white' : hasChanges ? 'bg-terracotta text-white hover:bg-[#a84015]' : 'bg-[#F3F4F6] text-ink/80 cursor-not-allowed'}`}>
           {saving ? <><Loader2 size={14} className="animate-spin" />Saving</> : saved ? <><Check size={14} />Saved</> : <><Save size={14} />Save</>}
+        </button>
+        <button
+          type="button"
+          onClick={() => downloadPackingSlipPDF([orderToPackingSlip({ ...order, items: order.items })], `packing-slip-${order.order_number}.pdf`)}
+          className="flex items-center gap-2 px-5 py-2.5 font-rajdhani font-bold text-[0.78rem] tracking-widest uppercase rounded-lg transition-colors bg-white border border-[#E5E7EB] text-ink/80 hover:border-gray-400"
+        >
+          <Printer size={14} />Print packing slip
         </button>
       </div>
 

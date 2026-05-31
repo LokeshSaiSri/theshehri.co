@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Save, Loader2, Check, AlertTriangle, Edit } from 'lucide-react';
+import { Save, Loader2, Check, AlertTriangle, Edit, RefreshCw } from 'lucide-react';
 import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
+import { AdminToast } from '@/components/admin/AdminToast';
 
 interface Variant {
   id: string; size: string; color?: string; sku: string; stock: number; reserved: number;
@@ -18,6 +19,8 @@ export default function AdminProducts() {
   const [stockEdits, setStockEdits] = useState<Record<string, number>>({});
   const [saving, setSaving]       = useState<Record<string, boolean>>({});
   const [saved, setSaved]         = useState<Record<string, boolean>>({});
+  const [reconciling, setReconciling] = useState(false);
+  const [toast, setToast]         = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
 
   const applyProducts = useCallback((fresh: Product[]) => {
     setProducts((prev) => {
@@ -52,6 +55,23 @@ export default function AdminProducts() {
 
   useLiveStockPoll(refreshProducts, 15_000);
 
+  async function reconcileStock() {
+    setReconciling(true);
+    try {
+      const res = await fetch('/api/admin/inventory/reconcile', { method: 'POST' });
+      if (res.ok) {
+        setToast({ message: 'Stock reconciled — reserved counts updated', variant: 'success' });
+        await refreshProducts();
+      } else {
+        setToast({ message: 'Reconcile failed — try again', variant: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Reconcile failed — try again', variant: 'error' });
+    } finally {
+      setReconciling(false);
+    }
+  }
+
   async function saveStock(product: Product) {
     setSaving(s => ({ ...s, [product.id]: true }));
     const variants = product.variants.map(v => ({ id: v.id, stock: stockEdits[v.id] ?? v.stock }));
@@ -69,14 +89,27 @@ export default function AdminProducts() {
 
   return (
     <div className="space-y-6 max-w-[1200px]">
+      {toast && (
+        <AdminToast message={toast.message} variant={toast.variant} onClose={() => setToast(null)} />
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-bebas text-[#191714] text-4xl tracking-wide">Products & Stock</h1>
           <p className="font-mono text-gray-400 text-[0.72rem] mt-0.5">Edit stock quantities per size</p>
         </div>
-        <Link href="/admin/products/new" className="bg-terracotta text-white font-rajdhani font-bold text-[0.75rem] tracking-widest uppercase px-5 py-2.5 rounded-lg hover:bg-[#a84015] transition-colors">
-          + Add Product
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={reconcileStock}
+            disabled={reconciling}
+            className="flex items-center gap-2 bg-white border border-[#E5E7EB] px-4 py-2.5 rounded-lg font-rajdhani font-bold text-[0.75rem] tracking-widest uppercase text-ink/70 hover:border-gray-400 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={reconciling ? 'animate-spin' : ''} />
+            {reconciling ? 'Reconciling…' : 'Reconcile stock'}
+          </button>
+          <Link href="/admin/products/new" className="bg-terracotta text-white font-rajdhani font-bold text-[0.75rem] tracking-widest uppercase px-5 py-2.5 rounded-lg hover:bg-[#a84015] transition-colors">
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       {products.map(product => {

@@ -1,7 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { calculateShipping } from '@/lib/shipping';
+import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import {
+  calculateShipping,
+  DEFAULT_SHIPPING_CONFIG,
+  settingsToConfig,
+  type ShippingConfig,
+} from '@/lib/shipping';
 
 export interface CartItem {
   productId: string;
@@ -60,12 +65,22 @@ interface CartContextType {
   shipping: number;
   total: number;
   itemCount: number;
+  shippingConfig: ShippingConfig;
+  untilFreeShipping: number;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [], hydrated: false });
+  const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(DEFAULT_SHIPPING_CONFIG);
+
+  useEffect(() => {
+    fetch('/api/shipping-settings')
+      .then((r) => r.json())
+      .then((d) => setShippingConfig(settingsToConfig(d)))
+      .catch(() => {});
+  }, []);
 
   // Hydrate from localStorage
   useEffect(() => {
@@ -85,8 +100,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [state.items, state.hydrated]);
 
   const subtotal = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = calculateShipping(subtotal);
+  const shipping = calculateShipping(subtotal, shippingConfig);
   const total = subtotal + shipping;
+  const untilFreeShipping = Math.max(0, shippingConfig.freeShippingAbove - subtotal);
 
   return (
     <CartContext.Provider
@@ -101,6 +117,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         shipping,
         total,
         itemCount: state.items.length,
+        shippingConfig,
+        untilFreeShipping,
       }}
     >
       {children}

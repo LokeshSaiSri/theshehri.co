@@ -2,16 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, BarChart2,
   Activity, Zap, Megaphone, RotateCcw, Bell, Settings,
-  LogOut, Menu, X, ChevronRight, ClipboardList,
+  LogOut, Menu, X, ChevronRight, ClipboardList, Truck,
 } from 'lucide-react';
 
 const NAV = [
   { href: '/admin',            label: 'Dashboard',  icon: LayoutDashboard, exact: true },
   { href: '/admin/orders',     label: 'Orders',     icon: Package },
+  { href: '/admin/dispatch',   label: 'Dispatch',   icon: Truck, badgeKey: 'dispatch' as const },
   { href: '/admin/products',   label: 'Products',   icon: ShoppingBag },
   { href: '/admin/customers',  label: 'Customers',  icon: Users },
   { href: '/admin/analytics',  label: 'Analytics',  icon: BarChart2 },
@@ -24,9 +25,9 @@ const NAV = [
   { href: '/admin/settings',   label: 'Settings',   icon: Settings },
 ];
 
-function NavItem({ href, label, icon: Icon, exact, onClick }: {
+function NavItem({ href, label, icon: Icon, exact, onClick, badge }: {
   href: string; label: string; icon: React.ElementType;
-  exact?: boolean; onClick?: () => void;
+  exact?: boolean; onClick?: () => void; badge?: number;
 }) {
   const pathname  = usePathname();
   const isActive  = exact ? pathname === href : pathname.startsWith(href);
@@ -43,12 +44,17 @@ function NavItem({ href, label, icon: Icon, exact, onClick }: {
     >
       <Icon size={16} className={isActive ? 'text-terracotta' : 'text-white/30 group-hover:text-white/50'} />
       <span className="uppercase tracking-[0.12em]">{label}</span>
-      {isActive && <ChevronRight size={12} className="ml-auto text-terracotta/60" />}
+      {badge != null && badge > 0 && (
+        <span className="ml-auto bg-terracotta text-white font-mono text-[0.55rem] px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+          {badge}
+        </span>
+      )}
+      {isActive && (!badge || badge === 0) && <ChevronRight size={12} className="ml-auto text-terracotta/60" />}
     </Link>
   );
 }
 
-function Sidebar({ onClose }: { onClose?: () => void }) {
+function Sidebar({ onClose, dispatchCount }: { onClose?: () => void; dispatchCount: number }) {
   const router = useRouter();
 
   async function logout() {
@@ -79,7 +85,12 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {NAV.map(item => (
-          <NavItem key={item.href} {...item} onClick={onClose} />
+          <NavItem
+            key={item.href}
+            {...item}
+            badge={'badgeKey' in item && item.badgeKey === 'dispatch' ? dispatchCount : undefined}
+            onClick={onClose}
+          />
         ))}
       </nav>
 
@@ -99,12 +110,20 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dispatchCount, setDispatchCount] = useState(0);
+
+  useEffect(() => {
+    fetch('/api/admin/dispatch', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => setDispatchCount(d.count ?? 0))
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-[#F9FAFB] font-sans">
       {/* Desktop sidebar */}
       <div className="hidden lg:flex flex-col fixed inset-y-0 left-0 z-50">
-        <Sidebar />
+        <Sidebar dispatchCount={dispatchCount} />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -112,7 +131,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
           <div className="relative z-10">
-            <Sidebar onClose={() => setSidebarOpen(false)} />
+            <Sidebar onClose={() => setSidebarOpen(false)} dispatchCount={dispatchCount} />
           </div>
         </div>
       )}

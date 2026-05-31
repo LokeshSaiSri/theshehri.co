@@ -11,6 +11,14 @@ export default function AdminSettings() {
   const [loadingLaunch, setLoadingLaunch] = useState(true);
 
   useEffect(() => {
+    fetch('/api/admin/settings/shipping')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.shipping_rate != null) setShipping(String(data.shipping_rate));
+        if (data.free_shipping_above != null) setFreeAt(String(data.free_shipping_above));
+      })
+      .catch(console.error);
+
     fetch('/api/admin/launch')
       .then(res => res.json())
       .then(data => {
@@ -42,6 +50,22 @@ export default function AdminSettings() {
     setTimeout(() => setSaved(null), 2000);
   }
 
+  async function saveShipping() {
+    try {
+      const res = await fetch('/api/admin/settings/shipping', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shipping_rate: parseInt(shipping, 10),
+          free_shipping_above: parseInt(freeAt, 10),
+        }),
+      });
+      if (res.ok) mockSave('shipping');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-[700px]">
       <div>
@@ -69,11 +93,10 @@ export default function AdminSettings() {
             Current: ₹{shipping} flat shipping · FREE above ₹{Number(freeAt).toLocaleString('en-IN')}
           </p>
         </div>
-        <button onClick={() => mockSave('shipping')}
+        <button onClick={saveShipping}
           className={`flex items-center gap-2 px-4 py-2.5 font-rajdhani font-bold text-[0.75rem] tracking-widest uppercase rounded-lg transition-colors ${saved === 'shipping' ? 'bg-green-600 text-white' : 'bg-terracotta text-white hover:bg-[#a84015]'}`}>
           {saved === 'shipping' ? <><Check size={13} />Saved</> : 'Save Shipping'}
         </button>
-        <p className="font-mono text-[0.62rem] text-ink/80 mt-2">* Update NEXT_PUBLIC_SHIPPING_RATE in .env.local to persist across restarts</p>
       </div>
 
       {/* Store info */}
@@ -120,7 +143,7 @@ export default function AdminSettings() {
           To change it, update that variable and redeploy — there is no in-app password field.
         </p>
         <p className="font-mono text-[0.65rem] text-ink/60 mt-3">
-          Login URL: <span className="text-[#191714]">/admin/login</span> · Session expires after 7 days.
+          Access: press <kbd className="px-1 py-0.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded text-[0.6rem]">⌘⇧L</kbd> on any page, then sign in at <span className="text-[#191714]">/admin/login</span>. Direct admin URLs redirect away. Session expires after 7 days.
         </p>
       </div>
 

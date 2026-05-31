@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, Search, X, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { track } from '@/lib/track';
-import { amountUntilFreeShipping } from '@/lib/shipping';
 import NavSearch from '@/components/NavSearch';
 
 function NavBar() {
@@ -31,8 +30,8 @@ function NavBar() {
 }
 
 export default function CartPage() {
-  const { items, removeItem, subtotal, shipping, total, itemCount } = useCart();
-  const untilFree = amountUntilFreeShipping(subtotal);
+  const { items, removeItem, subtotal, shipping, total, itemCount, untilFreeShipping } = useCart();
+  const untilFree = untilFreeShipping;
 
   useEffect(() => {
     track('cart_viewed', { metadata: { item_count: itemCount } });
@@ -86,7 +85,7 @@ export default function CartPage() {
                     </p>
                   </motion.div>
                 )}
-                {subtotal >= 2000 && (
+                {shipping === 0 && subtotal > 0 && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

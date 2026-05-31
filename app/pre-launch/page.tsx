@@ -857,6 +857,7 @@ export default function PreLaunchPage() {
           <nav className="flex flex-wrap justify-center gap-4 font-mono text-[0.62rem] uppercase tracking-widest text-ink/60" aria-label="Footer navigation">
             <a href="/size-guide" className="hover:text-terracotta">Korean Pants Size Guide</a>
             <a href="/about" className="hover:text-terracotta">About Shehri Co.</a>
+            <a href="/track" className="hover:text-terracotta">Track your order</a>
             <a href="https://instagram.com/theshehrico" target="_blank" rel="noopener noreferrer" className="hover:text-terracotta">Instagram</a>
           </nav>
         </div>
