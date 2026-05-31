@@ -372,7 +372,7 @@ export default function PreLaunchPage() {
   }
 
   return (
-    <main className="drop-snap-y bg-paper text-ink overflow-x-hidden selection:bg-terracotta selection:text-white">
+    <main className={`drop-snap-y bg-paper text-ink overflow-x-hidden selection:bg-terracotta selection:text-white ${!done && !closed && product ? 'mobile-sticky-offset' : ''}`}>
       {/* COVER */}
       <section className="drop-snap-section seo-hero-lcp relative min-h-[100dvh] bg-ink flex flex-col">
         <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden>
@@ -869,7 +869,7 @@ export default function PreLaunchPage() {
         <motion.div
           initial={{ y: 80 }}
           animate={{ y: 0 }}
-          className="fixed bottom-0 inset-x-0 z-50 lg:hidden border-t-2 border-ink bg-paper/95 backdrop-blur-md p-3"
+          className="fixed bottom-0 inset-x-0 z-50 lg:hidden border-t-2 border-ink bg-paper/95 backdrop-blur-md px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
         >
           <a
             href="#hold"

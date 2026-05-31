@@ -8,31 +8,12 @@ import { loadRazorpayScript } from '@/lib/load-razorpay';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ShoppingBag, ArrowLeft, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { track } from '@/lib/track';
 import { useRouter } from 'next/navigation';
-import NavSearch from '@/components/NavSearch';
-
-function NavBar() {
-  const { itemCount } = useCart();
-  return (
-    <nav className="fixed top-0 left-0 w-full bg-paper border-b border-stone z-50 flex items-center justify-between px-6 md:px-12 h-16">
-      <Link href="/" className="flex flex-row items-baseline gap-1 font-bebas text-ink text-xl pt-1">
-        <span className="tracking-wide text-[1.2rem]">THE</span>
-        <span className="font-devanagari text-terracotta text-[1.2rem]">शहरी</span>
-        <span className="tracking-wide text-[1.2rem]">CO.</span>
-      </Link>
-      <div className="flex items-center gap-6 text-ink">
-        <NavSearch />
-        <Link href="/cart" className="flex items-center gap-1.5 hover:text-terracotta transition-colors">
-          <ShoppingBag size={18} strokeWidth={1.5} />
-          <span className="font-rajdhani text-xs font-semibold">({itemCount})</span>
-        </Link>
-      </div>
-    </nav>
-  );
-}
+import { StoreNav } from '@/components/StoreNav';
+import { MobileStickyBar } from '@/components/MobileStickyBar';
 
 const checkoutSchema = z.object({
   name:          z.string().min(2, 'Full name is required'),
@@ -67,7 +48,7 @@ function Field({
 function Input({ className = '', ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`w-full border border-stone bg-paper px-4 py-3 font-mono text-[0.82rem] text-ink focus:outline-none focus:border-ink transition-colors placeholder:text-ink/70 ${className}`}
+      className={`w-full border border-stone bg-paper px-4 py-3 min-h-[48px] font-mono text-[0.82rem] text-ink focus:outline-none focus:border-ink transition-colors placeholder:text-ink/70 ${className}`}
       {...props}
     />
   );
@@ -247,9 +228,9 @@ export default function CheckoutPage() {
         strategy="afterInteractive"
       />
 
-      <NavBar />
+      <StoreNav />
 
-      <div className="pt-16 max-w-[1200px] mx-auto px-6 md:px-12 py-12">
+      <div className="safe-nav-offset max-w-[1200px] mx-auto px-4 sm:px-6 md:px-12 py-8 sm:py-12 mobile-sticky-offset">
         <Link
           href="/cart"
           className="inline-flex items-center gap-2 font-mono text-[0.72rem] text-ink/70 hover:text-ink transition-colors mb-8 uppercase tracking-widest"
@@ -261,7 +242,7 @@ export default function CheckoutPage() {
           CHECKOUT
         </h1>
 
-        <form onSubmit={handleSubmit(onFormSubmit)}>
+        <form id="checkout-form" onSubmit={handleSubmit(onFormSubmit)}>
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12 lg:gap-16 items-start">
 
             <div className="space-y-8">
@@ -269,15 +250,22 @@ export default function CheckoutPage() {
                 <h2 className="font-bebas text-ink text-2xl tracking-widest mb-6">CONTACT</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Full Name" error={errors.name?.message}>
-                    <Input {...register('name')} placeholder="Rahul Singh" />
+                    <Input {...register('name')} placeholder="Rahul Singh" autoComplete="name" />
                   </Field>
                   <Field label="Mobile Number" error={errors.phone?.message}>
-                    <Input {...register('phone')} placeholder="9810XXXXXX" type="tel" maxLength={10} />
+                    <Input
+                      {...register('phone')}
+                      placeholder="9810XXXXXX"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      maxLength={10}
+                    />
                   </Field>
                 </div>
                 <div className="mt-4">
                   <Field label="Email Address" error={errors.email?.message}>
-                    <Input {...register('email')} placeholder="rahul@gmail.com" type="email" />
+                    <Input {...register('email')} placeholder="rahul@gmail.com" type="email" autoComplete="email" />
                   </Field>
                 </div>
               </div>
@@ -288,21 +276,28 @@ export default function CheckoutPage() {
                 <h2 className="font-bebas text-ink text-2xl tracking-widest mb-6">DELIVERY ADDRESS</h2>
                 <div className="space-y-4">
                   <Field label="Street Address" error={errors.address_line1?.message}>
-                    <Input {...register('address_line1')} placeholder="Flat no., Building, Street" />
+                    <Input {...register('address_line1')} placeholder="Flat no., Building, Street" autoComplete="address-line1" />
                   </Field>
                   <Field label="Apartment / Area (Optional)" error={errors.address_line2?.message}>
-                    <Input {...register('address_line2')} placeholder="Colony, Sector, Locality" />
+                    <Input {...register('address_line2')} placeholder="Colony, Sector, Locality" autoComplete="address-line2" />
                   </Field>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="City" error={errors.city?.message}>
-                      <Input {...register('city')} placeholder="New Delhi" />
+                      <Input {...register('city')} placeholder="New Delhi" autoComplete="address-level2" />
                     </Field>
                     <Field label="State" error={errors.state?.message}>
-                      <Input {...register('state')} placeholder="Delhi" />
+                      <Input {...register('state')} placeholder="Delhi" autoComplete="address-level1" />
                     </Field>
                   </div>
                   <Field label="PIN Code" error={errors.pincode?.message}>
-                    <Input {...register('pincode')} placeholder="110001" maxLength={6} className="max-w-[180px]" />
+                    <Input
+                      {...register('pincode')}
+                      placeholder="110001"
+                      inputMode="numeric"
+                      autoComplete="postal-code"
+                      maxLength={6}
+                      className="sm:max-w-[180px]"
+                    />
                   </Field>
                   <Field label="Delivery Note (Optional)" error={errors.delivery_note?.message}>
                     <Input {...register('delivery_note')} placeholder="Leave at door, call before delivery, etc." />
@@ -368,7 +363,7 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={busy}
-                  className="w-full bg-terracotta text-white font-rajdhani font-bold text-sm tracking-[0.15em] uppercase py-4 flex items-center justify-center gap-2 hover:bg-ink transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="hidden lg:flex w-full bg-terracotta text-white font-rajdhani font-bold text-sm tracking-[0.15em] uppercase py-4 min-h-[52px] items-center justify-center gap-2 hover:bg-ink transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {busy ? (
                     <><Loader2 size={16} className="animate-spin" /> {paying ? 'Processing Payment…' : 'Creating Order…'}</>
@@ -385,6 +380,32 @@ export default function CheckoutPage() {
             </div>
           </div>
         </form>
+
+        <MobileStickyBar>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="font-mono text-[0.65rem] text-ink/60 uppercase tracking-wider">Total</p>
+              <p className="font-mono text-lg text-ink font-medium">₹{total.toLocaleString('en-IN')}</p>
+            </div>
+            <button
+              type="submit"
+              form="checkout-form"
+              disabled={busy}
+              className="flex-shrink-0 bg-terracotta text-white font-rajdhani font-bold text-sm tracking-[0.12em] uppercase px-6 py-3.5 min-h-[52px] flex items-center justify-center gap-2 hover:bg-ink transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {busy ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <>
+                  <Lock size={14} /> Pay
+                </>
+              )}
+            </button>
+          </div>
+          {checkoutError && (
+            <p className="mt-2 font-mono text-[0.68rem] text-terracotta leading-relaxed truncate">{checkoutError}</p>
+          )}
+        </MobileStickyBar>
       </div>
     </main>
   );

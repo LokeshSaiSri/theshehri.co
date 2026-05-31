@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArrowRight, ExternalLink, Package } from 'lucide-react';
 import { SITE_CONTACT } from '@/lib/site-contact';
+import { StoreNav } from '@/components/StoreNav';
 
 const STEPS = ['Ordered', 'Processing', 'Shipped', 'Delivered'] as const;
 
@@ -74,21 +75,9 @@ function TrackContent() {
 
   return (
     <main className="min-h-screen bg-paper selection:bg-terracotta selection:text-white">
-      <nav className="border-b border-stone px-6 md:px-12 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-baseline gap-1 font-bebas text-ink text-xl tracking-widest">
-          <span>THE</span>
-          <span className="font-devanagari text-terracotta">शहरी</span>
-          <span>CO.</span>
-        </Link>
-        <Link
-          href="/pre-launch"
-          className="font-mono text-[0.68rem] uppercase tracking-widest text-ink/60 hover:text-terracotta"
-        >
-          Back to store
-        </Link>
-      </nav>
+      <StoreNav />
 
-      <div className="max-w-lg mx-auto px-6 py-16 md:py-24">
+      <div className="safe-nav-offset max-w-lg mx-auto px-4 sm:px-6 py-10 sm:py-16 md:py-24">
         <div className="mb-10">
           <h1 className="font-bebas text-ink text-5xl md:text-6xl leading-[0.9] mb-3">Track your order</h1>
           <p className="font-mono text-[0.75rem] text-ink/60">
@@ -96,17 +85,19 @@ function TrackContent() {
           </p>
         </div>
 
-        <form onSubmit={trackOrder} className="flex gap-2 mb-10">
+        <form onSubmit={trackOrder} className="flex flex-col sm:flex-row gap-2 mb-10">
           <input
             value={orderInput}
             onChange={(e) => setOrderInput(e.target.value.toUpperCase())}
             placeholder="SHR-001"
-            className="flex-1 bg-white border-2 border-ink/10 px-4 py-3.5 font-mono text-sm text-ink focus:outline-none focus:border-terracotta placeholder:text-ink/30"
+            autoComplete="off"
+            inputMode="text"
+            className="flex-1 bg-white border-2 border-ink/10 px-4 py-3.5 min-h-[52px] font-mono text-sm text-ink focus:outline-none focus:border-terracotta placeholder:text-ink/30"
           />
           <button
             type="submit"
             disabled={loading || !orderInput.trim()}
-            className="bg-terracotta text-paper font-rajdhani font-bold text-sm tracking-[0.15em] uppercase px-6 py-3.5 hover:bg-ink transition-colors disabled:opacity-40 flex items-center gap-2"
+            className="bg-terracotta text-paper font-rajdhani font-bold text-sm tracking-[0.15em] uppercase px-6 py-3.5 min-h-[52px] hover:bg-ink transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
           >
             {loading ? '…' : 'Track order'}
             {!loading && <ArrowRight size={14} />}

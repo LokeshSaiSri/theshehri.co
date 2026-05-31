@@ -4,44 +4,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'motion/react';
-import { ShoppingBag, Search, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { getAllProducts, isSoldOut, getAvailableStock, type Product } from '@/lib/products';
 import { sortSizes } from '@/lib/sizes';
 import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
-import { useCart } from '@/context/CartContext';
 import { track } from '@/lib/track';
-import NavSearch from '@/components/NavSearch';
-
-function NavBar() {
-  const { itemCount } = useCart();
-  
-  return (
-    <nav className="fixed top-0 left-0 w-full bg-paper border-b border-stone z-50 flex items-center justify-between px-6 md:px-12 h-16">
-      <Link href="/" className="flex flex-row items-baseline gap-1 font-bebas text-ink text-xl pt-1">
-        <span className="tracking-wide text-[1.2rem]">THE</span>
-        <span className="font-devanagari text-terracotta text-[1.2rem]">शहरी</span>
-        <span className="tracking-wide text-[1.2rem]">CO.</span>
-      </Link>
-
-      <div className="hidden md:flex font-rajdhani text-xs uppercase tracking-[0.2em] text-ink gap-8 items-center">
-        <Link href="/shop" className="relative group text-terracotta">
-          SHOP<span className="absolute bottom-[-4px] left-0 w-full h-px bg-terracotta" />
-        </Link>
-        <Link href="/about" className="relative group">
-          ABOUT<span className="absolute bottom-[-4px] left-0 w-0 h-px bg-terracotta transition-all duration-300 group-hover:w-full" />
-        </Link>
-      </div>
-
-      <div className="flex items-center gap-6 text-ink">
-        <NavSearch />
-        <Link href="/cart" className="flex items-center gap-1.5 hover:text-terracotta transition-colors">
-          <ShoppingBag size={18} strokeWidth={1.5} />
-          <span className="font-rajdhani text-xs font-semibold">({itemCount})</span>
-        </Link>
-      </div>
-    </nav>
-  );
-}
+import { StoreNav } from '@/components/StoreNav';
 
 function StockDots({ available }: { available: number }) {
   if (available === 0) return <span className="text-[0.7rem] font-mono text-ink/70 uppercase tracking-wider">Sold out</span>;
@@ -155,15 +123,15 @@ export default function ShopPage() {
 
   return (
     <main className="min-h-screen bg-paper w-full selection:bg-terracotta selection:text-white">
-      <NavBar />
+      <StoreNav active="shop" />
 
-      <div className="pt-16">
+      <div className="safe-nav-offset">
         {/* Header */}
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="px-6 md:px-12 pt-16 pb-12 max-w-[1400px] mx-auto"
+          className="px-4 sm:px-6 md:px-12 pt-10 sm:pt-16 pb-12 max-w-[1400px] mx-auto"
         >
           <Link
             href="/"

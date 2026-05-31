@@ -4,7 +4,7 @@ import React, { useEffect, useState, use, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Search, ArrowLeft, ChevronDown, X, Check } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, ChevronDown, X, Check } from 'lucide-react';
 import { getProductBySlug, getAvailableStock, type Product, type ProductVariant } from '@/lib/products';
 import { SITE_CONTACT } from '@/lib/site-contact';
 import { sortVariants } from '@/lib/sizes';
@@ -12,37 +12,8 @@ import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
 import { useCart, type CartItem } from '@/context/CartContext';
 import { track } from '@/lib/track';
 import { notFound } from 'next/navigation';
-import NavSearch from '@/components/NavSearch';
-
-// ─── Navbar ────────────────────────────────────────────────────────────────
-
-function NavBar() {
-  const { itemCount } = useCart();
-  return (
-    <nav className="fixed top-0 left-0 w-full bg-paper border-b border-stone z-50 flex items-center justify-between px-6 md:px-12 h-16">
-      <Link href="/" className="flex flex-row items-baseline gap-1 font-bebas text-ink text-xl pt-1">
-        <span className="tracking-wide text-[1.2rem]">THE</span>
-        <span className="font-devanagari text-terracotta text-[1.2rem]">शहरी</span>
-        <span className="tracking-wide text-[1.2rem]">CO.</span>
-      </Link>
-      <div className="hidden md:flex font-rajdhani text-xs uppercase tracking-[0.2em] text-ink gap-8 items-center">
-        <Link href="/shop" className="relative group">
-          SHOP<span className="absolute bottom-[-4px] left-0 w-0 h-px bg-terracotta transition-all duration-300 group-hover:w-full" />
-        </Link>
-        <Link href="/about" className="relative group">
-          ABOUT<span className="absolute bottom-[-4px] left-0 w-0 h-px bg-terracotta transition-all duration-300 group-hover:w-full" />
-        </Link>
-      </div>
-      <div className="flex items-center gap-6 text-ink">
-        <NavSearch />
-        <Link href="/cart" className="flex items-center gap-1.5 hover:text-terracotta transition-colors">
-          <ShoppingBag size={18} strokeWidth={1.5} />
-          <span className="font-rajdhani text-xs font-semibold">({itemCount})</span>
-        </Link>
-      </div>
-    </nav>
-  );
-}
+import { StoreNav } from '@/components/StoreNav';
+import { MobileStickyBar } from '@/components/MobileStickyBar';
 
 // ─── Size Guide Modal ───────────────────────────────────────────────────────
 
@@ -85,7 +56,7 @@ function SizeGuideModal({ productName, onClose }: { productName: string; onClose
               <h2 className="font-bebas text-ink text-3xl tracking-wide">SIZE GUIDE</h2>
               <p className="font-mono text-ink/70 text-[0.7rem] mt-1">{productName}</p>
             </div>
-            <button onClick={onClose} className="text-ink/70 hover:text-ink transition-colors"><X size={20} /></button>
+            <button onClick={onClose} className="touch-target flex items-center justify-center text-ink/70 hover:text-ink transition-colors" aria-label="Close size guide"><X size={20} /></button>
           </div>
 
           <table className="w-full text-left">
@@ -239,7 +210,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   if (loading) {
     return (
       <main className="min-h-screen bg-paper">
-        <NavBar />
+        <StoreNav active="shop" />
         <div className="pt-16 flex items-center justify-center min-h-screen">
           <div className="font-mono text-ink/70 text-sm animate-pulse">Loading...</div>
         </div>
@@ -261,11 +232,11 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   return (
     <main className="min-h-screen bg-paper selection:bg-terracotta selection:text-white">
-      <NavBar />
+      <StoreNav active="shop" />
       {showSizeGuide && <SizeGuideModal productName={product.name} onClose={() => setShowSizeGuide(false)} />}
 
-      <div className="pt-16">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-10 pb-32">
+      <div className="safe-nav-offset">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-10 pb-8 mobile-sticky-offset lg:pb-32">
           {/* Breadcrumb */}
           <Link
             href="/shop"
@@ -304,7 +275,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
-                      className={`w-16 h-16 relative bg-linen overflow-hidden border-2 transition-all duration-200 ${
+                      className={`w-14 h-14 sm:w-16 sm:h-16 relative bg-linen overflow-hidden border-2 transition-all duration-200 touch-target ${
                         activeImage === i ? 'border-terracotta' : 'border-transparent hover:border-stone'
                       }`}
                     >
@@ -491,7 +462,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 <motion.button
                   onClick={handleAddToCart}
                   whileTap={{ scale: 0.98 }}
-                  className={`w-full py-4 font-rajdhani font-bold text-sm tracking-[0.2em] uppercase flex items-center justify-center gap-3 transition-all duration-300 mb-4 ${
+                  className={`hidden lg:flex w-full py-4 min-h-[52px] font-rajdhani font-bold text-sm tracking-[0.2em] uppercase items-center justify-center gap-3 transition-all duration-300 mb-4 ${
                     added
                       ? 'bg-ink text-paper'
                       : 'bg-terracotta text-white hover:bg-ink'
@@ -581,6 +552,36 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           </div>
         </div>
       </div>
+
+      {!timeLeft && (
+        <MobileStickyBar>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="font-rajdhani font-bold text-sm uppercase tracking-wider text-ink truncate">{product.name}</p>
+              <p className="font-mono text-base text-ink">₹{product.price.toLocaleString('en-IN')}</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className={`flex-shrink-0 font-rajdhani font-bold text-sm tracking-[0.12em] uppercase px-5 py-3.5 min-h-[52px] flex items-center justify-center gap-2 transition-colors ${
+                added
+                  ? 'bg-ink text-paper'
+                  : 'bg-terracotta text-white hover:bg-ink'
+              }`}
+            >
+              {added ? (
+                <>
+                  <Check size={16} /> Added
+                </>
+              ) : (
+                <>
+                  <ShoppingBag size={16} /> Add to Bag
+                </>
+              )}
+            </button>
+          </div>
+        </MobileStickyBar>
+      )}
     </main>
   );
 }

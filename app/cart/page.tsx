@@ -4,30 +4,11 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Search, X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { track } from '@/lib/track';
-import NavSearch from '@/components/NavSearch';
-
-function NavBar() {
-  const { itemCount } = useCart();
-  return (
-    <nav className="fixed top-0 left-0 w-full bg-paper border-b border-stone z-50 flex items-center justify-between px-6 md:px-12 h-16">
-      <Link href="/" className="flex flex-row items-baseline gap-1 font-bebas text-ink text-xl pt-1">
-        <span className="tracking-wide text-[1.2rem]">THE</span>
-        <span className="font-devanagari text-terracotta text-[1.2rem]">शहरी</span>
-        <span className="tracking-wide text-[1.2rem]">CO.</span>
-      </Link>
-      <div className="flex items-center gap-6 text-ink">
-        <NavSearch />
-        <Link href="/cart" className="flex items-center gap-1.5 hover:text-terracotta transition-colors">
-          <ShoppingBag size={18} strokeWidth={1.5} />
-          <span className="font-rajdhani text-xs font-semibold">({itemCount})</span>
-        </Link>
-      </div>
-    </nav>
-  );
-}
+import { StoreNav } from '@/components/StoreNav';
+import { MobileStickyBar } from '@/components/MobileStickyBar';
 
 export default function CartPage() {
   const { items, removeItem, subtotal, shipping, total, itemCount, untilFreeShipping } = useCart();
@@ -39,9 +20,9 @@ export default function CartPage() {
 
   return (
     <main className="min-h-screen bg-paper selection:bg-terracotta selection:text-white">
-      <NavBar />
+      <StoreNav />
 
-      <div className="pt-16 max-w-[1100px] mx-auto px-6 md:px-12 py-16">
+      <div className="safe-nav-offset max-w-[1100px] mx-auto px-4 sm:px-6 md:px-12 py-10 sm:py-16 mobile-sticky-offset">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -132,10 +113,10 @@ export default function CartPage() {
                                 removeItem(item.productId, item.size, item.color);
                                 track('remove_from_cart', { product_slug: item.productSlug, size: item.size, color: item.color });
                               }}
-                              className="text-ink/70 hover:text-ink transition-colors flex-shrink-0 mt-1"
+                              className="touch-target flex items-center justify-center text-ink/70 hover:text-ink transition-colors flex-shrink-0"
                               aria-label="Remove item"
                             >
-                              <X size={16} />
+                              <X size={18} />
                             </button>
                           </div>
                         </div>
@@ -176,7 +157,7 @@ export default function CartPage() {
                   <Link
                     href="/checkout"
                     onClick={() => track('checkout_started', { metadata: { items: itemCount, total } })}
-                    className="w-full bg-terracotta text-white font-rajdhani font-bold text-sm tracking-[0.15em] uppercase py-4 flex items-center justify-center gap-2 hover:bg-ink transition-colors duration-300 mb-4"
+                    className="hidden lg:flex w-full bg-terracotta text-white font-rajdhani font-bold text-sm tracking-[0.15em] uppercase py-4 min-h-[52px] items-center justify-center gap-2 hover:bg-ink transition-colors duration-300 mb-4"
                   >
                     PROCEED TO CHECKOUT <ArrowRight size={16} />
                   </Link>
@@ -199,6 +180,26 @@ export default function CartPage() {
           )}
         </motion.div>
       </div>
+
+      {itemCount > 0 && (
+        <MobileStickyBar>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="font-mono text-[0.65rem] text-ink/60 uppercase tracking-wider">
+                {itemCount} {itemCount === 1 ? 'item' : 'items'}
+              </p>
+              <p className="font-mono text-lg text-ink font-medium">₹{total.toLocaleString('en-IN')}</p>
+            </div>
+            <Link
+              href="/checkout"
+              onClick={() => track('checkout_started', { metadata: { items: itemCount, total } })}
+              className="flex-shrink-0 bg-terracotta text-white font-rajdhani font-bold text-sm tracking-[0.12em] uppercase px-6 py-3.5 min-h-[52px] flex items-center justify-center gap-2 hover:bg-ink transition-colors"
+            >
+              Checkout <ArrowRight size={16} />
+            </Link>
+          </div>
+        </MobileStickyBar>
+      )}
     </main>
   );
 }

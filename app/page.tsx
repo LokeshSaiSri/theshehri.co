@@ -5,10 +5,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { SITE_CONTACT } from '@/lib/site-contact';
 import { motion } from 'motion/react';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Menu, X } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getAllProducts, type Product } from '@/lib/products';
 import NavSearch from '@/components/NavSearch';
+
+const HOME_MOBILE_LINKS = [
+  { href: '/shop', label: 'Shop' },
+  { href: '/about', label: 'About' },
+  { href: '/track', label: 'Track Order' },
+  { href: '/size-guide', label: 'Size Guide' },
+] as const;
 
 function FadeInSection({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
@@ -191,6 +198,7 @@ export default function Home() {
   const [upcomingDrop, setUpcomingDrop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [navSolid, setNavSolid] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -255,7 +263,7 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, ease: 'easeOut', delay: 2.0 }}
-          className={`fixed top-0 left-0 w-full z-50 h-16 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500 ease-out ${
+          className={`fixed top-0 left-0 w-full z-50 h-16 pt-[env(safe-area-inset-top,0px)] transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500 ease-out ${
             navSolid
               ? 'bg-paper/95 backdrop-blur-md border-b border-stone shadow-[0_1px_0_rgba(25,23,20,0.04)]'
               : 'bg-transparent border-b border-transparent'
@@ -267,7 +275,7 @@ export default function Home() {
               aria-hidden
             />
           )}
-          <div className="relative z-10 flex h-full w-full items-center justify-between px-6 md:px-12">
+          <div className="relative z-10 flex h-full w-full items-center justify-between px-4 sm:px-6 md:px-12">
           <Link
             href="/"
             className={`flex flex-row items-baseline gap-1 font-bebas text-xl pt-1 transition-colors duration-500 ${
@@ -295,18 +303,63 @@ export default function Home() {
           </div>
 
           <div
-            className={`flex items-center gap-6 transition-colors duration-500 ${
+            className={`flex items-center gap-1 sm:gap-2 transition-colors duration-500 ${
               navSolid ? 'text-ink' : 'text-paper'
             }`}
           >
             <NavSearch light={!navSolid} />
-            <Link href="/cart" className="flex items-center gap-1.5 hover:text-terracotta transition-colors">
-              <ShoppingBag size={18} strokeWidth={1.5} />
+            <Link
+              href="/cart"
+              className="touch-target flex items-center justify-center gap-1.5 hover:text-terracotta transition-colors"
+              aria-label={`Cart, ${itemCount} items`}
+            >
+              <ShoppingBag size={20} strokeWidth={1.5} />
               <span className="font-rajdhani text-xs font-semibold">({itemCount})</span>
             </Link>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="md:hidden touch-target flex items-center justify-center hover:text-terracotta transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu size={22} strokeWidth={1.5} />
+            </button>
           </div>
           </div>
         </motion.nav>
+
+        {menuOpen && (
+          <div className="fixed inset-0 z-[60] md:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-ink/50"
+              aria-label="Close menu"
+              onClick={() => setMenuOpen(false)}
+            />
+            <div className="absolute top-0 right-0 h-full w-[min(100%,280px)] bg-paper border-l border-stone shadow-xl flex flex-col pt-[calc(4rem+env(safe-area-inset-top,0px))] pb-[env(safe-area-inset-bottom,0px)]">
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                className="absolute top-[calc(0.75rem+env(safe-area-inset-top,0px))] right-4 touch-target flex items-center justify-center text-ink"
+                aria-label="Close menu"
+              >
+                <X size={22} />
+              </button>
+              <nav className="flex flex-col px-6 gap-1">
+                {HOME_MOBILE_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="font-rajdhani font-bold text-lg uppercase tracking-[0.15em] text-ink py-3.5 min-h-[48px] flex items-center border-b border-stone/20 hover:text-terracotta"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          </div>
+        )}
 
         <div className="absolute inset-0">
           <motion.div
@@ -382,14 +435,14 @@ export default function Home() {
           </motion.div>
 
           {/* Headline — wraps the group, leaves faces clear */}
-          <div className="flex-1 relative min-h-[44vh] sm:min-h-[48vh] lg:min-h-[52vh]">
+          <div className="flex-1 relative min-h-[52vh] sm:min-h-[48vh] lg:min-h-[52vh]">
             <motion.div
               initial={{ opacity: 0, x: -32 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.28 }}
-              className="absolute top-0 left-0 max-w-[min(92%,540px)] md:max-w-[48%] flex flex-col items-start"
+              className="absolute top-0 left-0 max-w-[min(92%,540px)] md:max-w-[48%] flex flex-col items-start z-10"
             >
-              <h1 className="font-bebas text-paper text-[clamp(3.5rem,11.5vw,7rem)] leading-[0.86] [text-shadow:0_6px_40px_rgba(0,0,0,0.65)]">
+              <h1 className="font-bebas text-paper text-[clamp(2.75rem,10.5vw,7rem)] leading-[0.88] [text-shadow:0_6px_40px_rgba(0,0,0,0.65)]">
                 FOR THE <span className="text-terracotta">SHEHRI</span>&apos;S,
               </h1>
               <Link
@@ -405,10 +458,10 @@ export default function Home() {
               initial={{ opacity: 0, x: 32 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.38 }}
-              className="absolute top-[clamp(4.5rem,14vw,8.5rem)] md:top-[clamp(5rem,12vw,7rem)] right-0 max-w-[min(96%,620px)] md:max-w-[52%] flex flex-col items-end"
+              className="absolute top-[clamp(5.5rem,22vw,8.5rem)] md:top-[clamp(5rem,12vw,7rem)] right-0 max-w-[min(96%,620px)] md:max-w-[52%] flex flex-col items-end z-10"
             >
-              <div className="hero-headline-slab inline-block bg-paper/95 px-5 sm:px-7 py-3 sm:py-4 shadow-[0_20px_60px_rgba(25,23,20,0.28)] border border-paper">
-                <h1 className="font-bebas text-ink text-[clamp(3.5rem,11.5vw,7rem)] leading-[0.86] text-right">
+              <div className="hero-headline-slab inline-block bg-paper/95 px-4 sm:px-7 py-3 sm:py-4 shadow-[0_20px_60px_rgba(25,23,20,0.28)] border border-paper">
+                <h1 className="font-bebas text-ink text-[clamp(2.75rem,10.5vw,7rem)] leading-[0.88] text-right">
                   BY THE <span className="text-terracotta">SHEHRI</span>&apos;S.
                 </h1>
               </div>

@@ -27,6 +27,25 @@ body {
 }
 
 @layer utilities {
+  .safe-nav-offset {
+    padding-top: calc(4rem + env(safe-area-inset-top, 0px));
+  }
+
+  .mobile-sticky-offset {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 1024px) {
+    .mobile-sticky-offset {
+      padding-bottom: 0;
+    }
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
   .ticker-animation {
     animation: ticker 30s linear infinite;
   }

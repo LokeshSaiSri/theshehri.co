@@ -49,38 +49,43 @@ export default function NavSearch({ light = false }: { light?: boolean }) {
 
   return (
     <div className="relative flex items-center" ref={containerRef}>
-      <motion.div 
-        initial={false}
-        animate={{ width: isOpen ? '220px' : '0px', opacity: isOpen ? 1 : 0 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className={`overflow-hidden flex items-center mr-2 border-b ${light ? 'border-paper/25' : 'border-ink/20'}`}
-        style={{ originX: 1 }}
+      <div 
+        className={`overflow-hidden flex items-center mr-1 sm:mr-2 border-b transition-all duration-300 ease-in-out ${
+          isOpen ? 'w-[min(42vw,220px)] opacity-100' : 'w-0 opacity-0'
+        } ${light ? 'border-paper/25' : 'border-ink/20'}`}
       >
         <input
           ref={inputRef}
-          type="text"
+          type="search"
+          inputMode="search"
+          enterKeyHint="search"
+          autoComplete="off"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search..."
-          className={`w-full bg-transparent outline-none font-rajdhani text-sm uppercase tracking-wider py-1 px-2 ${
+          className={`w-full bg-transparent outline-none font-rajdhani text-sm uppercase tracking-wider py-2 px-2 min-h-[44px] ${
             light
               ? 'text-paper placeholder:text-paper/40'
               : 'text-ink placeholder:text-ink/40'
           }`}
         />
         <button 
+          type="button"
           onClick={() => { setIsOpen(false); setQuery(''); }} 
-          className={`p-1 transition-colors shrink-0 ${light ? 'text-paper/50 hover:text-paper' : 'text-ink/40 hover:text-ink'}`}
+          className={`touch-target flex items-center justify-center transition-colors shrink-0 ${light ? 'text-paper/50 hover:text-paper' : 'text-ink/40 hover:text-ink'}`}
+          aria-label="Close search"
         >
-          <X size={14} />
+          <X size={16} />
         </button>
-      </motion.div>
+      </div>
 
       <button 
+        type="button"
         onClick={() => setIsOpen(!isOpen)} 
-        className="hover:text-terracotta transition-colors shrink-0"
+        className="touch-target flex items-center justify-center hover:text-terracotta transition-colors shrink-0"
+        aria-label="Search products"
       >
-        <SearchIcon size={18} strokeWidth={1.5} />
+        <SearchIcon size={20} strokeWidth={1.5} />
       </button>
 
       {/* Dropdown Results Overlay */}
@@ -90,7 +95,7 @@ export default function NavSearch({ light = false }: { light?: boolean }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute top-[calc(100%+20px)] right-0 w-[300px] md:w-[400px] bg-paper border border-stone/20 shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-[100] flex flex-col max-h-[60vh] overflow-hidden"
+            className="absolute top-[calc(100%+12px)] right-0 w-[min(calc(100vw-2rem),400px)] bg-paper border border-stone/20 shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-[100] flex flex-col max-h-[60vh] overflow-hidden"
           >
             <div className="p-4 border-b border-stone/10 bg-linen/50 font-mono text-[0.65rem] tracking-widest text-ink/50 uppercase">
               {loading ? 'Searching...' : `${filteredProducts.length} Results`}

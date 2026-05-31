@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import {
   Bebas_Neue,
   Rajdhani,
@@ -99,6 +99,13 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = siteMetadata;
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#191714',
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const fontVars = [
