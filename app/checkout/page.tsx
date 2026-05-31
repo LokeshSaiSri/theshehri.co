@@ -1,19 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'motion/react';
+import Script from 'next/script';
+import { loadRazorpayScript } from '@/lib/load-razorpay';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ShoppingBag, Search, ArrowLeft, X, Lock, CreditCard, Smartphone, Loader2, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { track } from '@/lib/track';
 import { useRouter } from 'next/navigation';
 import NavSearch from '@/components/NavSearch';
-
-// ─── NavBar ────────────────────────────────────────────────────────────────
 
 function NavBar() {
   const { itemCount } = useCart();
@@ -35,8 +34,6 @@ function NavBar() {
   );
 }
 
-// ─── Validation Schema ──────────────────────────────────────────────────────
-
 const checkoutSchema = z.object({
   name:          z.string().min(2, 'Full name is required'),
   phone:         z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number'),
@@ -50,186 +47,6 @@ const checkoutSchema = z.object({
 });
 
 type CheckoutForm = z.infer<typeof checkoutSchema>;
-
-// ─── Mock Razorpay Modal ────────────────────────────────────────────────────
-
-type PaymentMethod = 'upi' | 'card';
-type PaymentState  = 'idle' | 'processing' | 'success' | 'failed';
-
-function MockPaymentModal({
-  total,
-  onSuccess,
-  onClose,
-}: {
-  total: number;
-  onSuccess: () => void;
-  onClose: () => void;
-}) {
-  const [method, setMethod]   = useState<PaymentMethod>('upi');
-  const [state, setState]     = useState<PaymentState>('idle');
-  const [upi, setUpi]         = useState('');
-  const [cardNum, setCardNum] = useState('');
-  const [expiry, setExpiry]   = useState('');
-  const [cvv, setCvv]         = useState('');
-
-  function handlePay() {
-    setState('processing');
-    // Simulate network + bank processing
-    setTimeout(() => {
-      setState('success');
-      setTimeout(onSuccess, 1200);
-    }, 2200);
-  }
-
-  const canPay =
-    state === 'idle' &&
-    (method === 'upi'
-      ? upi.includes('@')
-      : cardNum.replace(/\s/g, '').length === 16 && expiry.length === 5 && cvv.length === 3);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white w-full max-w-sm rounded-lg overflow-hidden shadow-2xl"
-      >
-        {/* Razorpay-style header */}
-        <div className="bg-[#072654] px-5 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-white text-[0.65rem] opacity-70 uppercase tracking-wider mb-0.5">The Shehri Co.</p>
-            <p className="text-white font-bold text-lg">₹{total.toLocaleString('en-IN')}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="bg-yellow-400 text-[#072654] text-[0.6rem] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Test Mode
-            </span>
-            <button onClick={onClose} disabled={state === 'processing'} className="text-white/60 hover:text-white transition-colors">
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Success screen */}
-        {state === 'success' ? (
-          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
-              <CheckCircle2 size={56} className="text-green-500 mb-4" />
-            </motion.div>
-            <p className="font-semibold text-gray-800 text-lg">Payment Successful!</p>
-            <p className="text-gray-500 text-sm mt-1">Confirming your order…</p>
-          </div>
-        ) : (
-          <div className="p-5">
-            {/* Method tabs */}
-            <div className="flex gap-1 bg-gray-100 rounded-md p-1 mb-5">
-              {[
-                { id: 'upi',  label: 'UPI',  icon: <Smartphone size={14} /> },
-                { id: 'card', label: 'Card', icon: <CreditCard size={14} /> },
-              ].map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setMethod(m.id as PaymentMethod)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded text-xs font-semibold transition-all duration-200 ${
-                    method === m.id ? 'bg-white shadow text-[#072654]' : 'text-gray-500'
-                  }`}
-                >
-                  {m.icon} {m.label}
-                </button>
-              ))}
-            </div>
-
-            {/* UPI */}
-            {method === 'upi' && (
-              <div>
-                <label className="block text-xs text-gray-500 font-medium mb-1.5">UPI ID</label>
-                <input
-                  value={upi}
-                  onChange={(e) => setUpi(e.target.value)}
-                  placeholder="yourname@upi"
-                  className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#072654]"
-                />
-                <p className="text-[0.65rem] text-gray-400 mt-1.5">Test: use any@upi</p>
-              </div>
-            )}
-
-            {/* Card */}
-            {method === 'card' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs text-gray-500 font-medium mb-1">Card Number</label>
-                  <input
-                    value={cardNum}
-                    onChange={(e) => {
-                      const v = e.target.value.replace(/\D/g, '').slice(0, 16);
-                      setCardNum(v.replace(/(.{4})/g, '$1 ').trim());
-                    }}
-                    placeholder="4111 1111 1111 1111"
-                    className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:border-[#072654]"
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <label className="block text-xs text-gray-500 font-medium mb-1">Expiry</label>
-                    <input
-                      value={expiry}
-                      onChange={(e) => {
-                        let v = e.target.value.replace(/\D/g, '').slice(0, 4);
-                        if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
-                        setExpiry(v);
-                      }}
-                      placeholder="MM/YY"
-                      className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:border-[#072654]"
-                    />
-                  </div>
-                  <div className="w-24">
-                    <label className="block text-xs text-gray-500 font-medium mb-1">CVV</label>
-                    <input
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                      placeholder="123"
-                      type="password"
-                      className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:border-[#072654]"
-                    />
-                  </div>
-                </div>
-                <p className="text-[0.65rem] text-gray-400">Test: 4111 1111 1111 1111 · 12/29 · 123</p>
-              </div>
-            )}
-
-            <button
-              onClick={handlePay}
-              disabled={!canPay}
-              className={`w-full mt-5 py-3 rounded font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 ${
-                canPay ? 'bg-[#072654] text-white hover:bg-[#0a3575]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              {state === 'processing' ? (
-                <><Loader2 size={16} className="animate-spin" /> Processing…</>
-              ) : (
-                <><Lock size={14} /> Pay ₹{total.toLocaleString('en-IN')}</>
-              )}
-            </button>
-
-            <div className="flex items-center justify-center gap-1.5 mt-4">
-              <Lock size={10} className="text-gray-400" />
-              <span className="text-[0.6rem] text-gray-400">Secured by Razorpay · SSL Encrypted</span>
-            </div>
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ─── Field component ────────────────────────────────────────────────────────
 
 function Field({
   label, error, children,
@@ -256,16 +73,12 @@ function Input({ className = '', ...props }: React.InputHTMLAttributes<HTMLInput
   );
 }
 
-// ─── Main Page ──────────────────────────────────────────────────────────────
-
 export default function CheckoutPage() {
   const { items, subtotal, shipping, total, itemCount, clearCart } = useCart();
   const router = useRouter();
-  const [showPayment, setShowPayment] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<CheckoutForm | null>(null);
 
   const {
     register,
@@ -279,10 +92,126 @@ export default function CheckoutPage() {
     track('checkout_started', { metadata: { items: itemCount, total } });
   }, [itemCount, router, total]);
 
+  const launchRazorpay = useCallback(
+    async (orderId: string, orderNumber: string, customer: CheckoutForm) => {
+      setPaying(true);
+      setCheckoutError(null);
+
+      let keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      if (!keyId) {
+        try {
+          const configRes = await fetch('/api/razorpay/config');
+          const configJson = await configRes.json();
+          if (configRes.ok && configJson.keyId) {
+            keyId = configJson.keyId;
+          }
+        } catch {
+          // fall through to error below
+        }
+      }
+
+      if (!keyId) {
+        setCheckoutError('Payment is not configured. Contact support.');
+        setPaying(false);
+        return;
+      }
+
+      try {
+        await loadRazorpayScript();
+      } catch {
+        setCheckoutError('Payment gateway failed to load. Refresh and try again.');
+        setPaying(false);
+        return;
+      }
+
+      try {
+        const createRes = await fetch('/api/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId }),
+        });
+        const createJson = await createRes.json();
+
+        if (!createRes.ok) {
+          setCheckoutError(createJson.error || 'Could not start payment. Try again.');
+          setPaying(false);
+          return;
+        }
+
+        const rzp = new window.Razorpay({
+          key: keyId,
+          amount: createJson.amount,
+          currency: createJson.currency,
+          name: 'The Shehri Co.',
+          description: `Order ${orderNumber}`,
+          order_id: createJson.order_id,
+          prefill: {
+            name: customer.name,
+            email: customer.email,
+            contact: customer.phone,
+          },
+          theme: { color: '#C04E18' },
+          modal: {
+            ondismiss: () => {
+              setPaying(false);
+              setCheckoutError('Payment cancelled. Your order is saved — try again when ready.');
+            },
+          },
+          handler: async (response) => {
+            try {
+              const verifyRes = await fetch('/api/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              });
+              const verifyJson = await verifyRes.json();
+
+              if (!verifyRes.ok) {
+                setCheckoutError(
+                  verifyJson.error || 'Payment received but verification failed. Contact support.'
+                );
+                return;
+              }
+
+              track('payment_success', { metadata: { order_id: orderId, total } });
+              clearCart();
+              router.push(`/order/${orderId}`);
+            } catch (err) {
+              console.error(err);
+              setCheckoutError('Payment verification failed. Contact support with your order number.');
+            } finally {
+              setPaying(false);
+            }
+          },
+        });
+
+        rzp.on('payment.failed', (response) => {
+          setPaying(false);
+          setCheckoutError(
+            response.error.description || 'Payment failed. Try again or use another method.'
+          );
+        });
+
+        track('payment_initiated', { metadata: { total, order_id: orderId } });
+        rzp.open();
+      } catch (err) {
+        console.error(err);
+        setCheckoutError('Could not open payment. Check your connection and try again.');
+        setPaying(false);
+      }
+    },
+    [clearCart, router, total]
+  );
+
   async function onFormSubmit(data: CheckoutForm) {
     setSubmitting(true);
     setCheckoutError(null);
-    setFormData(data);
+
     try {
       const res = await fetch('/api/orders/create', {
         method: 'POST',
@@ -290,14 +219,14 @@ export default function CheckoutPage() {
         body: JSON.stringify({ customer: data, items, subtotal, shipping, total }),
       });
       const json = await res.json();
+
       if (!res.ok) {
         setCheckoutError(json.error || 'Could not place order. Try again.');
         return;
       }
+
       if (json.orderId) {
-        setPendingOrderId(json.orderId);
-        track('payment_initiated', { metadata: { total } });
-        setShowPayment(true);
+        await launchRazorpay(json.orderId, json.orderNumber, data);
       }
     } catch (err) {
       console.error(err);
@@ -307,43 +236,18 @@ export default function CheckoutPage() {
     }
   }
 
-  async function handlePaymentSuccess() {
-    if (!pendingOrderId) return;
-    setShowPayment(false);
-    try {
-      const res = await fetch('/api/orders/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: pendingOrderId }),
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        alert(json.error || 'Payment confirmed but inventory update failed. Contact support.');
-        return;
-      }
-      track('payment_success', { metadata: { order_id: pendingOrderId, total } });
-      clearCart();
-      router.push(`/order/${pendingOrderId}`);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
   if (itemCount === 0) return null;
+
+  const busy = submitting || paying;
 
   return (
     <main className="min-h-screen bg-paper selection:bg-terracotta selection:text-white">
-      <NavBar />
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+      />
 
-      <AnimatePresence>
-        {showPayment && (
-          <MockPaymentModal
-            total={total}
-            onSuccess={handlePaymentSuccess}
-            onClose={() => setShowPayment(false)}
-          />
-        )}
-      </AnimatePresence>
+      <NavBar />
 
       <div className="pt-16 max-w-[1200px] mx-auto px-6 md:px-12 py-12">
         <Link
@@ -360,10 +264,7 @@ export default function CheckoutPage() {
         <form onSubmit={handleSubmit(onFormSubmit)}>
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12 lg:gap-16 items-start">
 
-            {/* ── LEFT: Form ──────────────────────────────────── */}
             <div className="space-y-8">
-
-              {/* Contact */}
               <div>
                 <h2 className="font-bebas text-ink text-2xl tracking-widest mb-6">CONTACT</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -383,7 +284,6 @@ export default function CheckoutPage() {
 
               <div className="w-full h-px bg-stone/20" />
 
-              {/* Delivery Address */}
               <div>
                 <h2 className="font-bebas text-ink text-2xl tracking-widest mb-6">DELIVERY ADDRESS</h2>
                 <div className="space-y-4">
@@ -412,7 +312,6 @@ export default function CheckoutPage() {
 
               <div className="w-full h-px bg-stone/20" />
 
-              {/* Shipping info */}
               <div className="bg-linen p-5 space-y-2">
                 <p className="font-mono text-[0.75rem] text-ink/70">🚚 Ships within 5–7 days from Delhi NCR</p>
                 <p className="font-mono text-[0.75rem] text-ink/70">📦 {shipping === 0 ? 'FREE shipping on this order' : `₹${shipping} flat shipping`}</p>
@@ -420,12 +319,10 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* ── RIGHT: Order Summary ────────────────────────── */}
             <div className="lg:sticky lg:top-24 h-fit">
               <div className="bg-linen p-7">
                 <h2 className="font-bebas text-ink text-2xl tracking-widest mb-6">ORDER SUMMARY</h2>
 
-                {/* Items */}
                 <div className="space-y-4 mb-6">
                   {items.map((item) => (
                     <div key={`${item.productId}-${item.size}-${item.color || ''}`} className="flex gap-3">
@@ -470,11 +367,11 @@ export default function CheckoutPage() {
 
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={busy}
                   className="w-full bg-terracotta text-white font-rajdhani font-bold text-sm tracking-[0.15em] uppercase py-4 flex items-center justify-center gap-2 hover:bg-ink transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {submitting ? (
-                    <><Loader2 size={16} className="animate-spin" /> Creating Order…</>
+                  {busy ? (
+                    <><Loader2 size={16} className="animate-spin" /> {paying ? 'Processing Payment…' : 'Creating Order…'}</>
                   ) : (
                     <><Lock size={14} /> PROCEED TO PAYMENT</>
                   )}

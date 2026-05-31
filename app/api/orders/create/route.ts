@@ -78,8 +78,6 @@ export async function POST(req: NextRequest) {
         shipping,
         total,
         delivery_note: customer.delivery_note || null,
-        // Mock Razorpay IDs — replace with real ones when Razorpay goes live
-        razorpay_order_id: `mock_order_${Date.now()}`,
       })
       .select('id')
       .single();
