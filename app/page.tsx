@@ -373,40 +373,40 @@ export default function Home() {
               alt="The Shehri community"
               fill
               unoptimized
-              className="object-cover object-[center_38%]"
+              className="object-cover object-[center_28%] sm:object-[center_32%] md:object-[center_38%]"
               sizes="100vw"
               priority
             />
           </motion.div>
 
           {/* Light targeted scrims — photo stays sharp & visible */}
-          <div className="absolute inset-0 bg-gradient-to-br from-ink/70 via-transparent to-transparent" aria-hidden />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-br from-ink/55 via-transparent to-transparent md:from-ink/70" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/5 to-ink/20 md:from-ink/80 md:via-ink/10 md:to-transparent" aria-hidden />
           <div
-            className="absolute top-[18%] right-0 w-[58%] h-[42%] bg-gradient-to-bl from-paper/15 via-transparent to-transparent"
+            className="absolute top-[12%] right-0 w-[72%] h-[38%] bg-gradient-to-bl from-paper/12 via-transparent to-transparent md:top-[18%] md:w-[58%] md:h-[42%]"
             aria-hidden
           />
 
           {/* Ghost collective mark */}
           <span
-            className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 font-devanagari text-[min(22rem,38vw)] text-paper/[0.055] leading-none pointer-events-none select-none"
+            className="absolute left-1/2 top-[42%] md:top-[46%] -translate-x-1/2 -translate-y-1/2 font-devanagari text-[min(16rem,52vw)] md:text-[min(22rem,38vw)] text-paper/[0.04] md:text-paper/[0.055] leading-none pointer-events-none select-none"
             aria-hidden
           >
             शहरी
           </span>
 
-          {/* Architectural accent — follows stair shadow angle */}
+          {/* Architectural accent */}
           <div
-            className="absolute top-[22%] left-0 w-[120%] h-px bg-terracotta/45 origin-top-left -rotate-[24deg] pointer-events-none"
+            className="absolute top-[18%] md:top-[22%] left-[-10%] md:left-0 w-[130%] md:w-[120%] h-px bg-terracotta/40 md:bg-terracotta/45 origin-top-left -rotate-[18deg] md:-rotate-[24deg] pointer-events-none"
             aria-hidden
           />
         </div>
 
         {/* Print registration marks */}
-        <div className="absolute top-[5.5rem] left-5 md:left-10 w-7 h-7 border-t border-l border-paper/35 z-20 pointer-events-none" aria-hidden />
-        <div className="absolute top-[5.5rem] right-5 md:right-10 w-7 h-7 border-t border-r border-paper/35 z-20 pointer-events-none" aria-hidden />
-        <div className="absolute bottom-[3.75rem] left-5 md:left-10 w-7 h-7 border-b border-l border-paper/35 z-20 pointer-events-none" aria-hidden />
-        <div className="absolute bottom-[3.75rem] right-5 md:right-10 w-7 h-7 border-b border-r border-paper/35 z-20 pointer-events-none" aria-hidden />
+        <div className="absolute top-[4.75rem] left-4 md:top-[5.5rem] md:left-10 w-5 h-5 md:w-7 md:h-7 border-t border-l border-paper/30 md:border-paper/35 z-20 pointer-events-none" aria-hidden />
+        <div className="absolute top-[4.75rem] right-4 md:top-[5.5rem] md:right-10 w-5 h-5 md:w-7 md:h-7 border-t border-r border-paper/30 md:border-paper/35 z-20 pointer-events-none" aria-hidden />
+        <div className="absolute bottom-[3.25rem] left-4 md:bottom-[3.75rem] md:left-10 w-5 h-5 md:w-7 md:h-7 border-b border-l border-paper/30 md:border-paper/35 z-20 pointer-events-none" aria-hidden />
+        <div className="absolute bottom-[3.25rem] right-4 md:bottom-[3.75rem] md:right-10 w-5 h-5 md:w-7 md:h-7 border-b border-r border-paper/30 md:border-paper/35 z-20 pointer-events-none" aria-hidden />
 
         {/* Vertical EST rail */}
         <motion.div
@@ -421,80 +421,152 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <div className="relative z-10 flex-1 flex flex-col min-h-[calc(100dvh-44px)] pl-5 pr-5 sm:pl-8 sm:pr-8 md:pl-16 md:pr-12 lg:pl-20 lg:pr-16 pt-[4.75rem] md:pt-20 pb-4">
+        <div className="relative z-10 flex-1 flex flex-col min-h-[calc(100dvh-44px-env(safe-area-inset-top,0px))] px-4 sm:px-8 md:pl-16 md:pr-12 lg:pl-20 lg:pr-16 pt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:pt-20 pb-4 md:pb-6">
           {/* Mobile EST */}
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 2.15 }}
-            className="md:hidden mb-6"
+            className="md:hidden mb-3"
           >
-            <p className="font-mono text-paper/90 text-[0.62rem] uppercase tracking-[0.28em] bg-ink/60 inline-block px-2.5 py-1.5 border border-paper/10">
+            <p className="font-mono text-paper/80 text-[0.58rem] uppercase tracking-[0.32em]">
               EST. {SITE_CONTACT.foundedYear} · DELHI NCR
             </p>
           </motion.div>
 
-          {/* Headline — wraps the group, leaves faces clear */}
-          <div className="flex-1 relative min-h-[52vh] sm:min-h-[48vh] lg:min-h-[52vh]">
+          {/* ── MOBILE: editorial split (mirrors laptop) ── */}
+          <div className="md:hidden flex-1 flex flex-col">
+            <div className="relative flex-1 min-h-[46vh]">
+              <motion.div
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.28 }}
+                className="relative z-10 max-w-[88%]"
+              >
+                <h1 className="font-bebas text-paper text-[clamp(3rem,13.5vw,4.25rem)] leading-[0.88] [text-shadow:0_8px_48px_rgba(0,0,0,0.7)]">
+                  FOR THE <span className="text-terracotta">SHEHRI</span>&apos;S,
+                </h1>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 28 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.38 }}
+                className="absolute top-[clamp(3.75rem,16vw,5.25rem)] right-0 left-3 z-20"
+              >
+                <div className="hero-mobile-slab ml-auto w-[96%] bg-paper/95 px-5 py-3.5 shadow-[0_24px_64px_rgba(25,23,20,0.32)] border border-paper">
+                  <h1 className="font-bebas text-ink text-[clamp(3rem,13.5vw,4.25rem)] leading-[0.88] text-right">
+                    BY THE <span className="text-terracotta">SHEHRI</span>&apos;S.
+                  </h1>
+                </div>
+              </motion.div>
+            </div>
+
             <motion.div
-              initial={{ opacity: 0, x: -32 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.28 }}
-              className="absolute top-0 left-0 max-w-[min(92%,540px)] md:max-w-[48%] flex flex-col items-start z-10"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 2.48 }}
+              className="mt-2 flex flex-col items-start gap-3 z-10"
             >
-              <h1 className="font-bebas text-paper text-[clamp(2.75rem,10.5vw,7rem)] leading-[0.88] [text-shadow:0_6px_40px_rgba(0,0,0,0.65)]">
-                FOR THE <span className="text-terracotta">SHEHRI</span>&apos;S,
-              </h1>
               <Link
                 href="/shop"
-                className="mt-4 md:mt-5 inline-flex items-center justify-center gap-2 bg-terracotta text-white font-rajdhani font-bold uppercase tracking-[0.14em] text-sm px-8 py-3.5 min-h-[48px] hover:bg-paper hover:text-ink transition-colors duration-300 shadow-[0_8px_24px_rgba(192,78,24,0.35)]"
+                className="inline-flex items-center justify-center gap-2 bg-terracotta text-white font-rajdhani font-bold uppercase tracking-[0.14em] text-sm px-8 py-3.5 min-h-[48px] shadow-[0_8px_24px_rgba(192,78,24,0.35)] hover:bg-paper hover:text-ink transition-colors duration-300"
               >
                 SHOP NOW
                 <span className="font-mono font-normal text-xs">↗</span>
               </Link>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Link
+                  href="/product/korean-pants"
+                  className="inline-flex items-center bg-terracotta text-white font-rajdhani font-bold text-[0.72rem] uppercase tracking-[0.14em] px-4 py-2.5 shadow-[0_8px_24px_rgba(192,78,24,0.35)] hover:bg-ink transition-colors duration-300"
+                >
+                  KOREAN PANTS&nbsp;&nbsp;₹2,000
+                  <span className="font-mono font-normal text-xs ml-1.5">↗</span>
+                </Link>
+                <Link
+                  href="/about"
+                  className="inline-flex items-center justify-center border border-paper/35 text-paper font-rajdhani font-bold uppercase tracking-[0.14em] text-[0.72rem] px-5 py-2.5 bg-paper/10 backdrop-blur-sm hover:bg-paper hover:text-ink transition-colors duration-300"
+                >
+                  OUR STORY
+                </Link>
+              </div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: 32 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.38 }}
-              className="absolute top-[clamp(5.5rem,22vw,8.5rem)] md:top-[clamp(5rem,12vw,7rem)] right-0 max-w-[min(96%,620px)] md:max-w-[52%] flex flex-col items-end z-10"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 2.55 }}
+              className="mt-auto pt-8 pb-1"
             >
-              <div className="hero-headline-slab inline-block bg-paper/95 px-4 sm:px-7 py-3 sm:py-4 shadow-[0_20px_60px_rgba(25,23,20,0.28)] border border-paper">
-                <h1 className="font-bebas text-ink text-[clamp(2.75rem,10.5vw,7rem)] leading-[0.88] text-right">
-                  BY THE <span className="text-terracotta">SHEHRI</span>&apos;S.
-                </h1>
-              </div>
-              <Link
-                href="/product/korean-pants"
-                className="mt-3 inline-flex items-center bg-terracotta text-white font-rajdhani font-bold text-[0.72rem] sm:text-[0.78rem] uppercase tracking-[0.14em] px-4 sm:px-5 py-2.5 hover:bg-ink transition-colors duration-300 shadow-[0_8px_24px_rgba(192,78,24,0.35)]"
-              >
-                KOREAN PANTS&nbsp;&nbsp;₹2,000
-                <span className="font-mono font-normal text-xs ml-1.5">↗</span>
-              </Link>
-              <Link
-                href="/about"
-                className="mt-3 inline-flex items-center justify-center border border-ink/20 text-ink font-rajdhani font-bold uppercase tracking-[0.14em] text-sm px-8 py-3.5 min-h-[48px] bg-paper/95 hover:bg-ink hover:text-paper hover:border-ink transition-colors duration-300 shadow-[0_12px_32px_rgba(25,23,20,0.12)]"
-              >
-                OUR STORY
-              </Link>
+              <div className="w-10 h-px bg-temple-gold/75 mb-3" aria-hidden />
+              <p className="font-mono text-paper/85 text-[0.76rem] leading-[1.75] max-w-[16rem] [text-shadow:0_2px_20px_rgba(0,0,0,0.45)]">
+                Bottoms only. Limited stock. No restocks.
+              </p>
             </motion.div>
           </div>
 
-          {/* Bottom — tagline */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 2.52 }}
-            className="mt-auto w-full max-w-[1400px] pt-8 md:pt-10"
-          >
-            <div className="max-w-[18rem]">
-              <div className="w-10 h-px bg-temple-gold/75 mb-4" aria-hidden />
-              <p className="font-mono text-paper/90 text-[0.8rem] sm:text-[0.82rem] leading-[1.75] [text-shadow:0_2px_20px_rgba(0,0,0,0.45)]">
-                Bottoms only. Limited stock. No restocks.
-              </p>
+          {/* ── DESKTOP: original editorial split ── */}
+          <div className="hidden md:flex flex-1 flex-col">
+            <div className="flex-1 relative min-h-[52vh]">
+              <motion.div
+                initial={{ opacity: 0, x: -32 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.28 }}
+                className="absolute top-0 left-0 max-w-[min(92%,540px)] lg:max-w-[48%] flex flex-col items-start z-10"
+              >
+                <h1 className="font-bebas text-paper text-[clamp(2.5rem,11.5vw,7rem)] leading-[0.9] [text-shadow:0_6px_40px_rgba(0,0,0,0.65)]">
+                  FOR THE <span className="text-terracotta">SHEHRI</span>&apos;S,
+                </h1>
+                <Link
+                  href="/shop"
+                  className="mt-5 inline-flex items-center justify-center gap-2 bg-terracotta text-white font-rajdhani font-bold uppercase tracking-[0.14em] text-sm px-8 py-3.5 min-h-[48px] hover:bg-paper hover:text-ink transition-colors duration-300 shadow-[0_8px_24px_rgba(192,78,24,0.35)]"
+                >
+                  SHOP NOW
+                  <span className="font-mono font-normal text-xs">↗</span>
+                </Link>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 32 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.38 }}
+                className="absolute top-[clamp(5rem,12vw,7rem)] right-0 max-w-[min(96%,620px)] lg:max-w-[52%] flex flex-col items-end z-10"
+              >
+                <div className="hero-headline-slab inline-block bg-paper/95 px-7 py-4 shadow-[0_20px_60px_rgba(25,23,20,0.28)] border border-paper">
+                  <h1 className="font-bebas text-ink text-[clamp(2.5rem,11.5vw,7rem)] leading-[0.9] text-right">
+                    BY THE <span className="text-terracotta">SHEHRI</span>&apos;S.
+                  </h1>
+                </div>
+                <Link
+                  href="/product/korean-pants"
+                  className="mt-3 inline-flex items-center bg-terracotta text-white font-rajdhani font-bold text-[0.78rem] uppercase tracking-[0.14em] px-5 py-2.5 hover:bg-ink transition-colors duration-300 shadow-[0_8px_24px_rgba(192,78,24,0.35)]"
+                >
+                  KOREAN PANTS&nbsp;&nbsp;₹2,000
+                  <span className="font-mono font-normal text-xs ml-1.5">↗</span>
+                </Link>
+                <Link
+                  href="/about"
+                  className="mt-3 inline-flex items-center justify-center border border-ink/20 text-ink font-rajdhani font-bold uppercase tracking-[0.14em] text-sm px-8 py-3.5 min-h-[48px] bg-paper/95 hover:bg-ink hover:text-paper hover:border-ink transition-colors duration-300 shadow-[0_12px_32px_rgba(25,23,20,0.12)]"
+                >
+                  OUR STORY
+                </Link>
+              </motion.div>
             </div>
-          </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 2.52 }}
+              className="mt-auto w-full max-w-[1400px] pt-10"
+            >
+              <div className="max-w-[18rem]">
+                <div className="w-10 h-px bg-temple-gold/75 mb-4" aria-hidden />
+                <p className="font-mono text-paper/90 text-[0.82rem] leading-[1.75] [text-shadow:0_2px_20px_rgba(0,0,0,0.45)]">
+                  Bottoms only. Limited stock. No restocks.
+                </p>
+              </div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Ticker */}
