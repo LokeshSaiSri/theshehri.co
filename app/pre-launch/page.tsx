@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, FormEvent, useMemo, useRef } from 'react';
+import React, { useEffect, useState, FormEvent, useMemo, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useInView } from 'motion/react';
 import {
@@ -9,6 +9,8 @@ import {
   type Product,
   type Size,
 } from '@/lib/products';
+import { sortSizes } from '@/lib/sizes';
+import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
 
 const CONTAINER = 'max-w-[1400px] mx-auto w-full px-6 md:px-12';
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -125,6 +127,7 @@ function AnimatedUnitWall({ total, taken }: { total: number; taken: number }) {
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const cells = Math.min(100, total);
   const filled = Math.min(cells, Math.round((taken / total) * cells));
+  const nextIndex = filled < cells ? filled : -1;
 
   return (
     <div ref={ref} className="w-full max-w-md mx-auto">
@@ -133,27 +136,36 @@ function AnimatedUnitWall({ total, taken }: { total: number; taken: number }) {
         style={{ gridTemplateColumns: 'repeat(10, minmax(0, 1fr))' }}
         aria-hidden
       >
-        {Array.from({ length: cells }).map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={
-              inView
-                ? {
-                    opacity: 1,
-                    scale: 1,
-                    backgroundColor: i < filled ? '#C04E18' : 'rgba(246, 243, 238, 0.1)',
-                  }
-                : { opacity: 0, scale: 0.6 }
-            }
-            transition={{
-              duration: 0.35,
-              delay: i * 0.012,
-              ease: EASE,
-            }}
-            className="aspect-square border border-paper/10"
-          />
-        ))}
+        {Array.from({ length: cells }).map((_, i) => {
+          const isFilled = i < filled;
+          const isNext = i === nextIndex;
+
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={
+                inView
+                  ? {
+                      opacity: 1,
+                      scale: 1,
+                      ...(isFilled
+                        ? { backgroundColor: '#C04E18' }
+                        : isNext
+                          ? {}
+                          : { backgroundColor: 'rgba(246, 243, 238, 0.1)' }),
+                    }
+                  : { opacity: 0, scale: 0.6 }
+              }
+              transition={{
+                duration: isFilled ? 0.35 : 0.25,
+                delay: i * 0.012,
+                ease: EASE,
+              }}
+              className={`aspect-square border border-paper/10 ${isNext ? 'unit-wall-next' : ''}`}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -183,34 +195,15 @@ const polaroidStackVariants = {
 function PolaroidStack({
   product,
   direction,
-  onSelectNext,
 }: {
   product: Product;
   direction: number;
-  onSelectNext?: () => void;
 }) {
   const primarySrc = product.images[0];
   const secondarySrc = product.images[1];
-  const interactive = Boolean(onSelectNext);
 
   return (
-    <div
-      className={`absolute inset-0 overflow-hidden group ${interactive ? 'cursor-pointer' : ''}`}
-      onClick={interactive ? onSelectNext : undefined}
-      onKeyDown={
-        interactive
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onSelectNext?.();
-              }
-            }
-          : undefined
-      }
-      role={interactive ? 'button' : undefined}
-      tabIndex={interactive ? 0 : undefined}
-      aria-label={interactive ? 'Next style — tap to switch product' : undefined}
-    >
+    <div className="absolute inset-0 overflow-hidden">
       <AnimatePresence mode="wait" custom={direction}>
         <motion.div
           key={product.id}
@@ -286,13 +279,18 @@ export default function PreLaunchPage() {
     return m;
   }, [product]);
 
-  const sizes = useMemo(() => Array.from(sizeStock.keys()).sort(), [sizeStock]);
+  const sizes = useMemo(() => sortSizes(sizeStock.keys()), [sizeStock]);
   const batchId = `B001-${String(inv.reserved + 1).padStart(4, '0')}`;
 
   const selectProduct = (nextIdx: number) => {
     setSwapDir(nextIdx > idx ? 1 : -1);
     setIdx(nextIdx);
   };
+
+  const refreshProducts = useCallback(async () => {
+    const p = await getAllProducts();
+    setProducts(p);
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -319,11 +317,18 @@ export default function PreLaunchPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  useLiveStockPoll(refreshProducts);
+
   useEffect(() => {
     setSize('');
     setDone(false);
     setErr(null);
   }, [idx]);
+
+  useEffect(() => {
+    if (!size) return;
+    if ((sizeStock.get(size) ?? 0) === 0) setSize('');
+  }, [size, sizeStock]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -348,10 +353,17 @@ export default function PreLaunchPage() {
           phone: fd.get('phone') || undefined,
           size,
           product: product.name,
+          productId: product.id,
         }),
       });
+      if (res.status === 409) {
+        setErr('Woh size ab gayi — doosri try karo.');
+        await refreshProducts();
+        return;
+      }
       if (!res.ok) throw new Error();
       setDone(true);
+      await refreshProducts();
     } catch {
       setErr('Nahi hua. Phir try karo.');
     } finally {
@@ -572,15 +584,7 @@ export default function PreLaunchPage() {
 
             <div className="relative bg-linen border-t lg:border-t-0 lg:border-l border-stone order-1 lg:order-2 min-h-[48vh] sm:min-h-[52vh] lg:min-h-0 lg:sticky lg:top-0 lg:h-screen">
               {product ? (
-                <PolaroidStack
-                  product={product}
-                  direction={swapDir}
-                  onSelectNext={
-                    products.length > 1
-                      ? () => selectProduct((idx + 1) % products.length)
-                      : undefined
-                  }
-                />
+                <PolaroidStack product={product} direction={swapDir} />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center font-devanagari text-[min(8rem,30vw)] text-terracotta/12">
                   शहरी
@@ -619,7 +623,7 @@ export default function PreLaunchPage() {
               pairs still in batch 001
             </p>
           </Reveal>
-          <AnimatedUnitWall total={inv.total} taken={inv.reserved} />
+          <AnimatedUnitWall key={inv.reserved} total={inv.total} taken={inv.reserved} />
           <Reveal delay={0.2}>
             <p className="font-mono text-[0.68rem] md:text-[0.7rem] text-paper/40 mt-8 md:mt-10 leading-relaxed max-w-sm mx-auto">
               Each square = one unit from this run. Jab bhar jaye, batch band.

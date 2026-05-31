@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 import { ShoppingBag, Search, ArrowLeft } from 'lucide-react';
 import { getAllProducts, isSoldOut, getAvailableStock, type Product } from '@/lib/products';
+import { sortSizes } from '@/lib/sizes';
+import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
 import { useCart } from '@/context/CartContext';
 import { track } from '@/lib/track';
 import NavSearch from '@/components/NavSearch';
@@ -47,7 +49,7 @@ function StockDots({ available }: { available: number }) {
   return <span className="text-[0.7rem] font-mono text-ink/70 uppercase tracking-wider">In stock</span>;
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const soldOut = isSoldOut(product.variants);
   const lowestStock = Math.min(...product.variants.map(getAvailableStock));
   const isUpcomingDrop = product.drop && new Date(product.drop.launch_date) > new Date();
@@ -68,6 +70,7 @@ function ProductCard({ product }: { product: Product }) {
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               sizes="(max-width: 768px) 100vw, 50vw"
+              priority={priority}
             />
           )}
 
@@ -104,7 +107,7 @@ function ProductCard({ product }: { product: Product }) {
 
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
-            {Array.from(new Set(product.variants.map((v) => v.size))).map((size) => {
+            {sortSizes(new Set(product.variants.map((v) => v.size))).map((size) => {
               const sizeVariants = product.variants.filter((v) => v.size === size);
               const isAvailable = sizeVariants.some((v) => getAvailableStock(v) > 0);
               return (
@@ -136,12 +139,19 @@ export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const refreshProducts = useCallback(async () => {
+    const p = await getAllProducts();
+    setProducts(p);
+  }, []);
+
   useEffect(() => {
     track('page_view', { page: '/shop' });
     getAllProducts()
       .then(setProducts)
       .finally(() => setLoading(false));
   }, []);
+
+  useLiveStockPoll(refreshProducts);
 
   return (
     <main className="min-h-screen bg-paper w-full selection:bg-terracotta selection:text-white">
@@ -195,8 +205,8 @@ export default function ShopPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8 lg:gap-12">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {products.map((product, index) => (
+                <ProductCard key={product.id} product={product} priority={index === 0} />
               ))}
               
               {/* Filler Card */}

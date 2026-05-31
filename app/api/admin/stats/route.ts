@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
+import { compareSizes } from '@/lib/sizes';
 
 export async function GET() {
   const supabase = createServerClient();
@@ -55,7 +56,13 @@ export async function GET() {
   const stockAlerts = (lowStockVariants || [])
     .map(v => ({ ...v, available: Math.max(0, v.stock - v.reserved) }))
     .filter(v => v.available <= 3)
-    .sort((a, b) => a.available - b.available);
+    .sort((a, b) => {
+      if (a.available !== b.available) return a.available - b.available;
+      const nameA = (a.product as { name?: string } | null)?.name ?? '';
+      const nameB = (b.product as { name?: string } | null)?.name ?? '';
+      if (nameA !== nameB) return nameA.localeCompare(nameB);
+      return compareSizes(a.size, b.size);
+    });
 
   return NextResponse.json({
     today: {

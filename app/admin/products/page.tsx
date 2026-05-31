@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Save, Loader2, Check, AlertTriangle, Edit } from 'lucide-react';
+import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
 
 interface Variant {
   id: string; size: string; color?: string; sku: string; stock: number; reserved: number;
@@ -18,16 +19,38 @@ export default function AdminProducts() {
   const [saving, setSaving]       = useState<Record<string, boolean>>({});
   const [saved, setSaved]         = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    fetch('/api/admin/products').then(r => r.json()).then(d => {
-      setProducts(d);
-      // Init stock edits to current stock
-      const init: Record<string, number> = {};
-      d.forEach((p: Product) => p.variants.forEach((v: Variant) => { init[v.id] = v.stock; }));
-      setStockEdits(init);
-      setLoading(false);
+  const applyProducts = useCallback((fresh: Product[]) => {
+    setProducts((prev) => {
+      setStockEdits((edits) => {
+        const next = { ...edits };
+        for (const p of fresh) {
+          const oldProduct = prev.find((x) => x.id === p.id);
+          for (const v of p.variants) {
+            const oldVariant = oldProduct?.variants.find((x) => x.id === v.id);
+            if (!oldVariant || edits[v.id] === oldVariant.stock) {
+              next[v.id] = v.stock;
+            }
+          }
+        }
+        return next;
+      });
+      return fresh;
     });
   }, []);
+
+  const refreshProducts = useCallback(async () => {
+    const fresh: Product[] = await fetch('/api/admin/products', { cache: 'no-store' }).then((r) => r.json());
+    applyProducts(fresh);
+  }, [applyProducts]);
+
+  useEffect(() => {
+    fetch('/api/admin/products', { cache: 'no-store' }).then(r => r.json()).then(d => {
+      applyProducts(d);
+      setLoading(false);
+    });
+  }, [applyProducts]);
+
+  useLiveStockPoll(refreshProducts, 15_000);
 
   async function saveStock(product: Product) {
     setSaving(s => ({ ...s, [product.id]: true }));
@@ -39,9 +62,7 @@ export default function AdminProducts() {
     setSaving(s => ({ ...s, [product.id]: false }));
     setSaved(s => ({ ...s, [product.id]: true }));
     setTimeout(() => setSaved(s => ({ ...s, [product.id]: false })), 2500);
-    // Reload products to reflect new stock
-    const fresh = await fetch('/api/admin/products').then(r => r.json());
-    setProducts(fresh);
+    await refreshProducts();
   }
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-6 w-6 border-2 border-terracotta border-t-transparent" /></div>;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -9,6 +9,7 @@ import {
   TrendingUp, ShoppingBag, Users, AlertTriangle,
   ArrowRight, RefreshCw, Package,
 } from 'lucide-react';
+import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,14 +82,18 @@ export default function AdminDashboard() {
 
   async function load(showRefresh = false) {
     if (showRefresh) setRefreshing(true);
-    const res = await fetch('/api/admin/stats');
+    const res = await fetch('/api/admin/stats', { cache: 'no-store' });
     const data = await res.json();
     setStats(data);
     setLoading(false);
     setRefreshing(false);
   }
 
+  const refreshStats = useCallback(() => load(), []);
+
   useEffect(() => { load(); }, []);
+
+  useLiveStockPoll(refreshStats, 15_000);
 
   const today = new Date().toLocaleDateString('en-IN', {
     weekday: 'long', day: 'numeric', month: 'long',
@@ -211,7 +216,7 @@ export default function AdminDashboard() {
               <p className="font-mono text-ink/80 text-[0.75rem]">All sizes well-stocked ✓</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[21rem] overflow-y-auto overscroll-contain pr-1 -mr-1">
               {stats.stockAlerts.map(v => (
                 <div key={v.id} className="flex items-center justify-between py-2.5 border-b border-[#F3F4F6] last:border-0">
                   <div>

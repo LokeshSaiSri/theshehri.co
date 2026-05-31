@@ -1,11 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
+import { getVariantAvailability } from '@/lib/inventory';
 
 export async function POST(req: NextRequest) {
   const supabase = createServerClient();
 
   try {
     const { customer, items, subtotal, shipping, total } = await req.json();
+
+    for (const item of items as {
+      productId: string;
+      productName: string;
+      size: string;
+      color?: string;
+      quantity?: number;
+    }[]) {
+      const quantity = item.quantity ?? 1;
+      const { available, variant } = await getVariantAvailability(
+        supabase,
+        item.productId,
+        item.size,
+        item.color
+      );
+      if (!variant) {
+        return NextResponse.json(
+          { error: `${item.productName} (Size ${item.size}) could not be found — refresh and try again` },
+          { status: 404 }
+        );
+      }
+      if (available < quantity) {
+        return NextResponse.json(
+          {
+            error:
+              available === 0
+                ? `${item.productName} (Size ${item.size}) is sold out`
+                : `${item.productName} (Size ${item.size}) — only ${available} left`,
+          },
+          { status: 409 }
+        );
+      }
+    }
 
     // 1. Generate unique order number (e.g. SHR-9A2F8B)
     const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();

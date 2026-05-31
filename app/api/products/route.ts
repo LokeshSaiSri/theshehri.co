@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
+import { withSortedVariantsList } from '@/lib/sizes';
 
 export async function GET() {
   const supabase = createServerClient();
@@ -14,5 +15,5 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json(withSortedVariantsList(data ?? []));
 }

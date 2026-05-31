@@ -34,7 +34,7 @@ export interface Product {
 
 export async function getAllProducts(): Promise<Product[]> {
   try {
-    const res = await fetch('/api/products');
+    const res = await fetch('/api/products', { cache: 'no-store' });
     if (!res.ok) throw new Error('Failed to fetch products');
     const data = await res.json();
     return (data as Product[]) || [];
@@ -46,7 +46,7 @@ export async function getAllProducts(): Promise<Product[]> {
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
-    const res = await fetch(`/api/products/${slug}`);
+    const res = await fetch(`/api/products/${slug}`, { cache: 'no-store' });
     if (!res.ok) throw new Error('Failed to fetch product');
     const data = await res.json();
     return data as Product;

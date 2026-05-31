@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { Resend } from 'resend';
+import { reserveOrderItems, releaseOrderItems } from '@/lib/inventory';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
@@ -10,7 +11,28 @@ export async function POST(req: NextRequest) {
   try {
     const { orderId } = await req.json();
 
-    // 1. Mark order as paid
+    const { data: existing, error: fetchError } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        customer:customers(*),
+        items:order_items(*)
+      `)
+      .eq('id', orderId)
+      .single();
+
+    if (fetchError || !existing) throw fetchError;
+
+    if (existing.payment_status === 'paid') {
+      return NextResponse.json({ success: true, orderNumber: existing.order_number });
+    }
+
+    const reserveResult = await reserveOrderItems(supabase, existing.items);
+    if (!reserveResult.ok) {
+      return NextResponse.json({ error: reserveResult.message }, { status: 409 });
+    }
+
+    // Mark order as paid
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .update({
@@ -20,6 +42,7 @@ export async function POST(req: NextRequest) {
         razorpay_signature:  'mock_signature',
       })
       .eq('id', orderId)
+      .eq('payment_status', 'pending')
       .select(`
         *,
         customer:customers(*),
@@ -27,7 +50,13 @@ export async function POST(req: NextRequest) {
       `)
       .single();
 
-    if (orderError) throw orderError;
+    if (orderError || !order) {
+      await releaseOrderItems(supabase, existing.items);
+      return NextResponse.json(
+        { error: 'Order was already processed or could not be confirmed' },
+        { status: 409 }
+      );
+    }
 
     // 2. Update customer stats
     await supabase.rpc('increment_customer_stats', {

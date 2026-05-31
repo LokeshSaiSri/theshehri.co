@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, use, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, Search, ArrowLeft, ChevronDown, X, Check } from 'lucide-react';
 import { getProductBySlug, getAvailableStock, type Product, type ProductVariant } from '@/lib/products';
+import { sortVariants } from '@/lib/sizes';
+import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
 import { useCart, type CartItem } from '@/context/CartContext';
 import { track } from '@/lib/track';
 import { notFound } from 'next/navigation';
@@ -135,6 +137,23 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   const { addItem, items } = useCart();
 
+  const refreshProduct = useCallback(async () => {
+    const p = await getProductBySlug(slug);
+    if (!p) return;
+
+    setProduct(p);
+    setSelectedSize((prev) => {
+      if (!prev) return prev;
+      const match = p.variants.find(
+        (v) =>
+          v.size === prev &&
+          (!selectedColor || v.color === selectedColor),
+      );
+      if (!match || getAvailableStock(match) === 0) return null;
+      return prev;
+    });
+  }, [slug, selectedColor]);
+
   useEffect(() => {
     track('page_view', { page: `/product/${slug}`, product_slug: slug });
     track('product_view', { product_slug: slug });
@@ -167,6 +186,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [slug]);
+
+  useLiveStockPoll(refreshProduct);
 
   if (!loading && !product) notFound();
 
@@ -228,9 +249,11 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   if (!product) return null;
 
   const availableColors = Array.from(new Set(product.variants.map((v) => v.color).filter(Boolean))) as string[];
-  const variantsToDisplay = selectedColor 
-    ? product.variants.filter((v) => v.color === selectedColor)
-    : product.variants;
+  const variantsToDisplay = sortVariants(
+    selectedColor
+      ? product.variants.filter((v) => v.color === selectedColor)
+      : product.variants,
+  );
 
   const selectedVariant = variantsToDisplay.find((v) => v.size === selectedSize);
   const selectedStock = selectedVariant ? getAvailableStock(selectedVariant) : null;
@@ -267,7 +290,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                     alt={product.name}
                     fill
                     className="object-cover"
-                    priority
+                    priority={activeImage === 0}
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
                 )}

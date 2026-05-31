@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { getAllProducts, type Product } from '@/lib/products';
 
-export default function NavSearch() {
+export default function NavSearch({ light = false }: { light?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
@@ -53,7 +53,7 @@ export default function NavSearch() {
         initial={false}
         animate={{ width: isOpen ? '220px' : '0px', opacity: isOpen ? 1 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="overflow-hidden flex items-center border-b border-ink/20 mr-2"
+        className={`overflow-hidden flex items-center mr-2 border-b ${light ? 'border-paper/25' : 'border-ink/20'}`}
         style={{ originX: 1 }}
       >
         <input
@@ -62,11 +62,15 @@ export default function NavSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search..."
-          className="w-full bg-transparent outline-none font-rajdhani text-sm uppercase tracking-wider text-ink py-1 px-2 placeholder:text-ink/40"
+          className={`w-full bg-transparent outline-none font-rajdhani text-sm uppercase tracking-wider py-1 px-2 ${
+            light
+              ? 'text-paper placeholder:text-paper/40'
+              : 'text-ink placeholder:text-ink/40'
+          }`}
         />
         <button 
           onClick={() => { setIsOpen(false); setQuery(''); }} 
-          className="p-1 text-ink/40 hover:text-ink transition-colors shrink-0"
+          className={`p-1 transition-colors shrink-0 ${light ? 'text-paper/50 hover:text-paper' : 'text-ink/40 hover:text-ink'}`}
         >
           <X size={14} />
         </button>

@@ -263,6 +263,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [showPayment, setShowPayment] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CheckoutForm | null>(null);
 
@@ -280,6 +281,7 @@ export default function CheckoutPage() {
 
   async function onFormSubmit(data: CheckoutForm) {
     setSubmitting(true);
+    setCheckoutError(null);
     setFormData(data);
     try {
       const res = await fetch('/api/orders/create', {
@@ -288,6 +290,10 @@ export default function CheckoutPage() {
         body: JSON.stringify({ customer: data, items, subtotal, shipping, total }),
       });
       const json = await res.json();
+      if (!res.ok) {
+        setCheckoutError(json.error || 'Could not place order. Try again.');
+        return;
+      }
       if (json.orderId) {
         setPendingOrderId(json.orderId);
         track('payment_initiated', { metadata: { total } });
@@ -295,6 +301,7 @@ export default function CheckoutPage() {
       }
     } catch (err) {
       console.error(err);
+      setCheckoutError('Something went wrong. Check your connection and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -304,11 +311,16 @@ export default function CheckoutPage() {
     if (!pendingOrderId) return;
     setShowPayment(false);
     try {
-      await fetch('/api/orders/confirm', {
+      const res = await fetch('/api/orders/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: pendingOrderId }),
       });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.error || 'Payment confirmed but inventory update failed. Contact support.');
+        return;
+      }
       track('payment_success', { metadata: { order_id: pendingOrderId, total } });
       clearCart();
       router.push(`/order/${pendingOrderId}`);
@@ -449,6 +461,12 @@ export default function CheckoutPage() {
                     <span className="font-mono text-[1.1rem] text-ink">₹{total.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
+
+                {checkoutError && (
+                  <p className="mb-4 font-mono text-[0.75rem] text-terracotta leading-relaxed border border-terracotta/30 bg-terracotta/5 px-4 py-3">
+                    {checkoutError}
+                  </p>
+                )}
 
                 <button
                   type="submit"

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'motion/react';
@@ -9,7 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { getAllProducts, type Product } from '@/lib/products';
 import NavSearch from '@/components/NavSearch';
 
-function FadeInSection({ children, className }: { children: React.ReactNode, className?: string }) {
+function FadeInSection({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -189,6 +189,8 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [upcomingDrop, setUpcomingDrop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [navSolid, setNavSolid] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     Promise.all([
@@ -200,6 +202,19 @@ export default function Home() {
         setUpcomingDrop(dropData);
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setNavSolid(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '-72px 0px 0px 0px' },
+    );
+
+    observer.observe(hero);
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -233,130 +248,207 @@ export default function Home() {
         </div>
       </motion.div>
 
-      {/* SECTION 1: NAV */}
-      <motion.nav 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut", delay: 2.0 }}
-        className="fixed top-0 left-0 w-full bg-paper border-b border-stone z-50 flex items-center justify-between px-6 md:px-12 h-16"
-      >
-        <Link href="/" className="flex flex-row items-baseline gap-1 font-bebas text-ink text-xl pt-1">
-          <span className="tracking-wide text-[1.2rem]">THE</span>
-          <span className="font-devanagari text-terracotta text-[1.2rem]">शहरी</span>
-          <span className="tracking-wide text-[1.2rem]">CO.</span>
-        </Link>
-        
-        <div className="hidden md:flex font-rajdhani text-xs uppercase tracking-[0.2em] text-ink gap-8 items-center">
-          <Link href="/shop" className="relative group">SHOP<span className="absolute bottom-[-4px] left-0 w-0 h-px bg-terracotta transition-all duration-300 group-hover:w-full"></span></Link>
-          <Link href="/about" className="relative group">ABOUT<span className="absolute bottom-[-4px] left-0 w-0 h-px bg-terracotta transition-all duration-300 group-hover:w-full"></span></Link>
-        </div>
-        
-        <div className="flex items-center gap-6 text-ink">
-          <NavSearch />
-          <Link href="/cart" className="flex items-center gap-1.5 hover:text-terracotta transition-colors">
-            <ShoppingBag size={18} strokeWidth={1.5} />
-            <span className="font-rajdhani text-xs font-semibold">({itemCount})</span>
-          </Link>
-        </div>
-      </motion.nav>
-
-      {/* SECTION 2: HERO */}
-      <section className="min-h-[100dvh] bg-paper flex flex-col pt-16 relative overflow-hidden">
-        <div className="flex-1 flex flex-col md:flex-row relative w-full">
-        
-        {/* Absolute watermark */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.18 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 2.3 }}
-          className="absolute -left-12 md:left-[5%] top-[10%] md:top-[20%] font-devanagari text-[18rem] md:text-[28vw] lg:text-[30vw] text-terracotta leading-none pointer-events-none z-0 select-none"
-        >
-          शहरी
-        </motion.div>
-
-        {/* Left Column */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut", delay: 2.1 }}
-          className="w-full md:w-[45%] flex flex-col justify-center px-6 md:px-12 py-20 relative z-10"
-        >
-          <div className="font-mono text-ink/70 text-[0.75rem] mb-12 md:mb-20 uppercase relative z-20">EST. 2025 · DELHI NCR</div>
-          
-          <div className="relative z-20 mb-8 mt-auto md:mt-0">
-            <h1 className="font-bebas text-7xl md:text-[5rem] lg:text-[6rem] xl:text-[7rem] text-ink leading-[0.85]">
-              FOR THE <span className="text-terracotta">SHEHRI</span>&apos;S,
-              <br />
-              BY THE <span className="text-terracotta">SHEHRI</span>&apos;S.
-            </h1>
-          </div>
-          
-          <p className="font-mono text-ink/70 text-[0.85rem] mb-12 relative z-20 max-w-sm">
-            Bottoms only. Limited stock. No restocks.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 relative z-20 mt-auto md:mt-0">
-            <Link href="/shop" className="bg-terracotta text-white font-rajdhani hover:bg-ink transition-colors duration-[250ms] px-8 py-3.5 text-sm tracking-[0.1em] font-bold uppercase flex items-center justify-center gap-2 w-full sm:w-auto">
-              SHOP NOW <span className="font-mono font-normal">↗</span>
-            </Link>
-            <Link href="/about" className="border border-ink text-ink font-rajdhani hover:bg-ink hover:text-paper transition-colors duration-[250ms] px-8 py-3.5 text-sm tracking-[0.1em] font-bold uppercase flex items-center justify-center w-full sm:w-auto">
-              OUR STORY
-            </Link>
-          </div>
-        </motion.div>
-        
-        {/* Right Column */}
-        <motion.div 
+      {/* HERO — nav lives inside, blends until scroll */}
+      <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden bg-ink">
+        <motion.nav
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 2.2 }}
-          className="w-full md:w-[55%] relative flex flex-row gap-3 md:gap-6 p-4 md:p-6 md:pl-0 min-h-[60vh] md:min-h-0 md:h-[calc(100dvh-108px)] md:mt-0"
+          transition={{ duration: 0.4, ease: 'easeOut', delay: 2.0 }}
+          className={`fixed top-0 left-0 w-full z-50 h-16 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500 ease-out ${
+            navSolid
+              ? 'bg-paper/95 backdrop-blur-md border-b border-stone shadow-[0_1px_0_rgba(25,23,20,0.04)]'
+              : 'bg-transparent border-b border-transparent'
+          }`}
         >
-          {/* Photo 1 (Staggered smaller) */}
-          <div className="w-[40%] md:w-[45%] h-[75%] mt-auto bg-linen relative flex items-center justify-center border border-stone/10 overflow-hidden">
-            <Image 
-              src="/details.png" 
-              alt="Detail Photograph" 
-              fill 
-              className="object-cover" 
-              referrerPolicy="no-referrer"
-              sizes="(max-width: 768px) 40vw, 45vw"
-              priority
+          {!navSolid && (
+            <div
+              className="absolute inset-0 bg-gradient-to-b from-ink/50 via-ink/15 to-transparent pointer-events-none"
+              aria-hidden
             />
-          </div>
-
-          {/* Photo 2 (Full height) */}
-          <div className="w-[60%] md:w-[55%] h-full bg-stone relative flex items-center justify-center overflow-hidden">
-            <Image 
-              src="/model.png" 
-              alt="Model Photograph" 
-              fill 
-              className="object-cover" 
-              referrerPolicy="no-referrer"
-              sizes="(max-width: 768px) 60vw, 55vw"
-              priority
-            />
-          </div>
-          
-          <motion.div 
-            initial={{ x: 50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut", delay: 2.5 }}
-            className="absolute bottom-10 right-6 md:left-[45%] md:-translate-x-1/2 md:right-auto z-30"
+          )}
+          <div className="relative z-10 flex h-full w-full items-center justify-between px-6 md:px-12">
+          <Link
+            href="/"
+            className={`flex flex-row items-baseline gap-1 font-bebas text-xl pt-1 transition-colors duration-500 ${
+              navSolid ? 'text-ink' : 'text-paper'
+            }`}
           >
-            <Link href="/product/korean-pants" className="bg-terracotta text-white rounded-full px-6 py-2.5 font-rajdhani font-bold flex items-center justify-center hover:scale-[1.04] hover:-translate-y-[2px] hover:shadow-[0_4px_14px_rgba(192,78,24,0.28)] hover:bg-ink cursor-pointer transition-all duration-[var(--dur-fast)] ease-[var(--ease-out-expo)] shadow-sm whitespace-nowrap text-[0.85rem] tracking-wider">
-              KOREAN PANTS &nbsp;&nbsp;₹2,000 <span className="font-mono font-normal ml-1">↗</span>
+            <span className="tracking-wide text-[1.2rem]">THE</span>
+            <span className="font-devanagari text-terracotta text-[1.2rem]">शहरी</span>
+            <span className="tracking-wide text-[1.2rem]">CO.</span>
+          </Link>
+
+          <div
+            className={`hidden md:flex font-rajdhani text-xs uppercase tracking-[0.2em] gap-8 items-center transition-colors duration-500 ${
+              navSolid ? 'text-ink' : 'text-paper/90'
+            }`}
+          >
+            <Link href="/shop" className="relative group hover:text-terracotta transition-colors">
+              SHOP
+              <span className="absolute bottom-[-4px] left-0 w-0 h-px bg-terracotta transition-all duration-300 group-hover:w-full" />
             </Link>
+            <Link href="/about" className="relative group hover:text-terracotta transition-colors">
+              ABOUT
+              <span className="absolute bottom-[-4px] left-0 w-0 h-px bg-terracotta transition-all duration-300 group-hover:w-full" />
+            </Link>
+          </div>
+
+          <div
+            className={`flex items-center gap-6 transition-colors duration-500 ${
+              navSolid ? 'text-ink' : 'text-paper'
+            }`}
+          >
+            <NavSearch light={!navSolid} />
+            <Link href="/cart" className="flex items-center gap-1.5 hover:text-terracotta transition-colors">
+              <ShoppingBag size={18} strokeWidth={1.5} />
+              <span className="font-rajdhani text-xs font-semibold">({itemCount})</span>
+            </Link>
+          </div>
+          </div>
+        </motion.nav>
+
+        <div className="absolute inset-0">
+          <motion.div
+            initial={{ scale: 1.05 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1], delay: 2 }}
+            className="absolute inset-0"
+          >
+            <Image
+              src="/hero-community.png"
+              alt="The Shehri community"
+              fill
+              unoptimized
+              className="object-cover object-[center_38%]"
+              sizes="100vw"
+              priority
+            />
           </motion.div>
-        </motion.div>
+
+          {/* Light targeted scrims — photo stays sharp & visible */}
+          <div className="absolute inset-0 bg-gradient-to-br from-ink/70 via-transparent to-transparent" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent" aria-hidden />
+          <div
+            className="absolute top-[18%] right-0 w-[58%] h-[42%] bg-gradient-to-bl from-paper/15 via-transparent to-transparent"
+            aria-hidden
+          />
+
+          {/* Ghost collective mark */}
+          <span
+            className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 font-devanagari text-[min(22rem,38vw)] text-paper/[0.055] leading-none pointer-events-none select-none"
+            aria-hidden
+          >
+            शहरी
+          </span>
+
+          {/* Architectural accent — follows stair shadow angle */}
+          <div
+            className="absolute top-[22%] left-0 w-[120%] h-px bg-terracotta/45 origin-top-left -rotate-[24deg] pointer-events-none"
+            aria-hidden
+          />
         </div>
-        
-        {/* SECTION 3: TICKER STRIP (Moved inside Hero) */}
-        <motion.div 
+
+        {/* Print registration marks */}
+        <div className="absolute top-[5.5rem] left-5 md:left-10 w-7 h-7 border-t border-l border-paper/35 z-20 pointer-events-none" aria-hidden />
+        <div className="absolute top-[5.5rem] right-5 md:right-10 w-7 h-7 border-t border-r border-paper/35 z-20 pointer-events-none" aria-hidden />
+        <div className="absolute bottom-[3.75rem] left-5 md:left-10 w-7 h-7 border-b border-l border-paper/35 z-20 pointer-events-none" aria-hidden />
+        <div className="absolute bottom-[3.75rem] right-5 md:right-10 w-7 h-7 border-b border-r border-paper/35 z-20 pointer-events-none" aria-hidden />
+
+        {/* Vertical EST rail */}
+        <motion.div
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 2.2 }}
+          className="hidden md:flex absolute left-0 top-[5.5rem] bottom-[3.75rem] w-11 lg:w-12 bg-ink/50 backdrop-blur-[2px] border-r border-paper/10 z-20 items-center justify-center pointer-events-none"
+          aria-hidden
+        >
+          <p className="hero-est-vertical font-mono text-paper/75 text-[0.58rem] uppercase tracking-[0.38em]">
+            EST. 2025 · DELHI NCR
+          </p>
+        </motion.div>
+
+        <div className="relative z-10 flex-1 flex flex-col min-h-[calc(100dvh-44px)] pl-5 pr-5 sm:pl-8 sm:pr-8 md:pl-16 md:pr-12 lg:pl-20 lg:pr-16 pt-[4.75rem] md:pt-20 pb-4">
+          {/* Mobile EST */}
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 2.15 }}
+            className="md:hidden mb-6"
+          >
+            <p className="font-mono text-paper/90 text-[0.62rem] uppercase tracking-[0.28em] bg-ink/60 inline-block px-2.5 py-1.5 border border-paper/10">
+              EST. 2025 · DELHI NCR
+            </p>
+          </motion.div>
+
+          {/* Headline — wraps the group, leaves faces clear */}
+          <div className="flex-1 relative min-h-[44vh] sm:min-h-[48vh] lg:min-h-[52vh]">
+            <motion.div
+              initial={{ opacity: 0, x: -32 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.28 }}
+              className="absolute top-0 left-0 max-w-[min(92%,540px)] md:max-w-[48%] flex flex-col items-start"
+            >
+              <h1 className="font-bebas text-paper text-[clamp(3.5rem,11.5vw,7rem)] leading-[0.86] [text-shadow:0_6px_40px_rgba(0,0,0,0.65)]">
+                FOR THE <span className="text-terracotta">SHEHRI</span>&apos;S,
+              </h1>
+              <Link
+                href="/shop"
+                className="mt-4 md:mt-5 inline-flex items-center justify-center gap-2 bg-terracotta text-white font-rajdhani font-bold uppercase tracking-[0.14em] text-sm px-8 py-3.5 min-h-[48px] hover:bg-paper hover:text-ink transition-colors duration-300 shadow-[0_8px_24px_rgba(192,78,24,0.35)]"
+              >
+                SHOP NOW
+                <span className="font-mono font-normal text-xs">↗</span>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 2.38 }}
+              className="absolute top-[clamp(4.5rem,14vw,8.5rem)] md:top-[clamp(5rem,12vw,7rem)] right-0 max-w-[min(96%,620px)] md:max-w-[52%] flex flex-col items-end"
+            >
+              <div className="hero-headline-slab inline-block bg-paper/95 px-5 sm:px-7 py-3 sm:py-4 shadow-[0_20px_60px_rgba(25,23,20,0.28)] border border-paper">
+                <h1 className="font-bebas text-ink text-[clamp(3.5rem,11.5vw,7rem)] leading-[0.86] text-right">
+                  BY THE <span className="text-terracotta">SHEHRI</span>&apos;S.
+                </h1>
+              </div>
+              <Link
+                href="/product/korean-pants"
+                className="mt-3 inline-flex items-center bg-terracotta text-white font-rajdhani font-bold text-[0.72rem] sm:text-[0.78rem] uppercase tracking-[0.14em] px-4 sm:px-5 py-2.5 hover:bg-ink transition-colors duration-300 shadow-[0_8px_24px_rgba(192,78,24,0.35)]"
+              >
+                KOREAN PANTS&nbsp;&nbsp;₹2,000
+                <span className="font-mono font-normal text-xs ml-1.5">↗</span>
+              </Link>
+              <Link
+                href="/about"
+                className="mt-3 inline-flex items-center justify-center border border-ink/20 text-ink font-rajdhani font-bold uppercase tracking-[0.14em] text-sm px-8 py-3.5 min-h-[48px] bg-paper/95 hover:bg-ink hover:text-paper hover:border-ink transition-colors duration-300 shadow-[0_12px_32px_rgba(25,23,20,0.12)]"
+              >
+                OUR STORY
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Bottom — tagline */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 2.52 }}
+            className="mt-auto w-full max-w-[1400px] pt-8 md:pt-10"
+          >
+            <div className="max-w-[18rem]">
+              <div className="w-10 h-px bg-temple-gold/75 mb-4" aria-hidden />
+              <p className="font-mono text-paper/90 text-[0.8rem] sm:text-[0.82rem] leading-[1.75] [text-shadow:0_2px_20px_rgba(0,0,0,0.45)]">
+                Bottoms only. Limited stock. No restocks.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Ticker */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 2.6 }}
-          className="w-full bg-ink overflow-hidden h-[44px] flex items-center border-y border-ink shrink-0"
+          transition={{ duration: 0.5, delay: 2.6 }}
+          className="relative z-10 w-full bg-ink overflow-hidden h-[44px] flex items-center shrink-0 border-t border-terracotta/50"
         >
           <div className="flex whitespace-nowrap ticker-animation font-rajdhani text-[0.85rem] font-bold uppercase tracking-[0.25em] text-paper">
             <span className="px-4">LIMITED STOCK · NO RESTOCKS · FIT WITH NO LOGO · शहरी · KOREAN PANTS · LINEN PANTS · DELHI NCR · LIMITED STOCK · NO RESTOCKS · FIT WITH NO LOGO · शहरी · KOREAN PANTS · LINEN PANTS · DELHI NCR · LIMITED STOCK · NO RESTOCKS · FIT WITH NO LOGO · शहरी · KOREAN PANTS · LINEN PANTS · DELHI NCR · LIMITED STOCK · NO RESTOCKS · FIT WITH NO LOGO · शहरी · KOREAN PANTS · LINEN PANTS · DELHI NCR ·</span>
