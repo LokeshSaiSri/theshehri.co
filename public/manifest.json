@@ -1,0 +1,13 @@
+{
+  "name": "Shehri Co.",
+  "short_name": "Shehri",
+  "description": "India's first bottoms-only streetwear brand. Korean pants and baggy linen pants.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#C04E18",
+  "lang": "en-IN",
+  "icons": [
+    { "src": "/og-image.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}

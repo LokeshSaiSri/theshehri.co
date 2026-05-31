@@ -11,6 +11,7 @@ import {
 } from '@/lib/products';
 import { sortSizes } from '@/lib/sizes';
 import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
+import { PreLaunchFaq } from '@/components/seo/PreLaunchFaq';
 
 const CONTAINER = 'max-w-[1400px] mx-auto w-full px-6 md:px-12';
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -201,6 +202,13 @@ function PolaroidStack({
 }) {
   const primarySrc = product.images[0];
   const secondarySrc = product.images[1];
+  const isKorean = product.slug.includes('korean');
+  const primaryAlt = isKorean
+    ? 'Shehri Co. Korean pants — relaxed fit streetwear bottoms, black'
+    : 'Shehri Co. baggy linen pants — oversized natural linen, off-white';
+  const secondaryAlt = isKorean
+    ? 'Shehri Co. Korean pants side profile showing tapered hem and pocket detail'
+    : 'Shehri Co. baggy linen pants showing oversized silhouette and natural texture';
 
   return (
     <div className="absolute inset-0 overflow-hidden">
@@ -220,11 +228,12 @@ function PolaroidStack({
               <div className="absolute inset-0 bottom-[2.25rem]">
                 <Image
                   src={primarySrc}
-                  alt={product.name}
+                  alt={primaryAlt}
                   fill
                   className="object-cover"
                   sizes="320px"
                   priority
+                  fetchPriority="high"
                 />
               </div>
               <p className="absolute bottom-0 left-0 right-0 bg-paper font-mono text-[0.55rem] p-2.5 uppercase tracking-widest border-t border-ink">
@@ -239,7 +248,7 @@ function PolaroidStack({
 
           {secondarySrc && (
             <div className="drop-polaroid-secondary absolute top-[20%] right-[6%] md:right-[10%] w-[42%] max-w-[180px] aspect-square border-2 border-ink bg-paper rotate-6 opacity-90 z-0 overflow-hidden shadow-[4px_6px_0_#191714]">
-              <Image src={secondarySrc} alt="" fill className="object-cover" sizes="180px" />
+              <Image src={secondarySrc} alt={secondaryAlt} fill className="object-cover" sizes="180px" />
             </div>
           )}
         </motion.div>
@@ -372,9 +381,9 @@ export default function PreLaunchPage() {
   }
 
   return (
-    <div className="drop-snap-y bg-paper text-ink overflow-x-hidden selection:bg-terracotta selection:text-white">
+    <main className="drop-snap-y bg-paper text-ink overflow-x-hidden selection:bg-terracotta selection:text-white">
       {/* COVER */}
-      <section className="drop-snap-section relative min-h-[100dvh] bg-ink flex flex-col">
+      <section className="drop-snap-section seo-hero-lcp relative min-h-[100dvh] bg-ink flex flex-col">
         <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden>
           <motion.span
             initial={{ opacity: 0, x: 40 }}
@@ -394,8 +403,8 @@ export default function PreLaunchPage() {
           </motion.span>
         </div>
 
-        <header className={`relative z-10 flex justify-between items-start pt-6 md:pt-8 ${CONTAINER}`}>
-          <span className="font-bebas text-paper text-lg md:text-xl tracking-wide">
+        <header className={`relative z-10 flex justify-between items-start pt-6 md:pt-8 ${CONTAINER}`} aria-label="Main navigation">
+          <span className="font-bebas text-paper text-lg md:text-xl tracking-wide" aria-label="Shehri Co. wordmark">
             THE <span className="font-devanagari text-terracotta">शहरी</span> CO.
           </span>
           <span className="font-mono text-[0.6rem] md:text-[0.65rem] text-paper/45 uppercase tracking-[0.32em] hidden sm:block text-right max-w-[140px] leading-relaxed">
@@ -418,14 +427,11 @@ export default function PreLaunchPage() {
               initial={{ opacity: 0, y: 36 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.06, ease: EASE }}
-              className="font-bebas text-paper leading-[0.84] mb-6 md:mb-8"
+              className="font-bebas text-paper seo-hero-headline leading-[0.84] mb-6 md:mb-8"
             >
-              <span className="block text-[clamp(3.25rem,13vw,8.5rem)]">DROP</span>
-              <span className="block text-[clamp(3.25rem,13vw,8.5rem)] text-terracotta -mt-1 md:-mt-3">
-                PEHLE
-              </span>
+              <span className="block text-[clamp(2.5rem,10vw,6rem)]">The streets don&apos;t wait.</span>
               <span className="block text-[clamp(1.35rem,4.5vw,2.75rem)] text-paper/55 font-rajdhani font-semibold tracking-[0.18em] uppercase mt-3 md:mt-5">
-                public ko dikhne se pehle
+                Batch 001 · preorder open
               </span>
             </motion.h1>
 
@@ -435,7 +441,7 @@ export default function PreLaunchPage() {
               transition={{ delay: 0.22, duration: 0.6 }}
               className="font-mono text-paper/55 text-sm md:text-[0.9rem] max-w-md leading-[1.75] mb-8 md:mb-10"
             >
-              Bottoms only. Size lock = ₹0 aaj. Jab store live hoga, tumhe pehle link milega.
+              Fit &gt; Logo. India&apos;s bottoms-only brand — Korean pants and baggy linen pants for Delhi streetwear. Lock your size today.
             </motion.p>
 
             {!closed && (
@@ -447,7 +453,7 @@ export default function PreLaunchPage() {
                 transition={{ delay: 0.32, ease: EASE }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="drop-btn inline-flex items-center justify-center bg-paper text-ink font-rajdhani font-bold uppercase tracking-[0.18em] text-sm px-8 py-4 min-h-[52px] hover:bg-terracotta hover:text-paper"
+                className="drop-btn seo-cta inline-flex items-center justify-center bg-paper text-ink font-rajdhani font-bold uppercase tracking-[0.18em] text-sm px-8 py-4 min-h-[52px] hover:bg-terracotta hover:text-paper"
               >
                 Size lock karo ↗
               </motion.a>
@@ -457,6 +463,7 @@ export default function PreLaunchPage() {
 
         <div className="relative z-10 bg-paper text-ink border-t-2 border-terracotta mt-auto">
           <div className={`${CONTAINER} py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-6`}>
+            <div style={{ minHeight: '80px' }} className="flex items-center" role="timer" aria-label="Preorder countdown timer" aria-live="polite">
             {countdown && !closed ? (
               <CountdownSlash c={countdown} />
             ) : (
@@ -464,6 +471,7 @@ export default function PreLaunchPage() {
                 {closed ? 'BAND HO GAYA' : 'TIMING TBA'}
               </p>
             )}
+            </div>
             <p className="font-mono text-[0.62rem] md:text-[0.65rem] uppercase tracking-[0.18em] text-ink/50 sm:text-right sm:max-w-[220px] leading-relaxed">
               {inv.remaining} pairs left · batch 001 · no restock
             </p>
@@ -485,14 +493,18 @@ export default function PreLaunchPage() {
       <section
         id="choose"
         className="drop-snap-section min-h-[100dvh] border-b border-stone bg-paper"
+        aria-labelledby="products-heading"
       >
         <div className={`${CONTAINER} lg:max-w-none lg:px-0`}>
           <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_min(420px,38vw)] min-h-[100dvh]">
             <div className="px-6 md:px-12 lg:pl-12 lg:pr-8 py-14 md:py-20 flex flex-col justify-center order-2 lg:order-1">
               <Reveal>
-                <p className="font-mono text-[0.65rem] text-terracotta uppercase tracking-[0.32em] mb-6 md:mb-8">
+                <p className="font-mono text-[0.65rem] text-terracotta uppercase tracking-[0.32em] mb-3 md:mb-4">
                   Chapter 01 — choose
                 </p>
+                <h2 id="products-heading" className="font-rajdhani font-bold uppercase tracking-[0.12em] text-xl md:text-2xl mb-6 md:mb-8">
+                  Korean Pants &amp; Linen Bottoms — Batch 001
+                </h2>
               </Reveal>
 
               {products.length > 1 && (
@@ -521,22 +533,22 @@ export default function PreLaunchPage() {
                 </div>
               ) : (
                 <div>
-                  <h2 className="font-rajdhani font-bold uppercase tracking-[0.12em] text-2xl md:text-4xl mb-2">
+                  <h3 className="font-rajdhani font-bold uppercase tracking-[0.12em] text-2xl md:text-4xl mb-2">
                     {product.name}
-                  </h2>
+                  </h3>
                   <p className="font-bebas text-5xl md:text-6xl text-terracotta mb-5 md:mb-6">
                     ₹{product.price.toLocaleString('en-IN')}
                   </p>
                   <p className="font-mono text-sm text-ink/65 leading-[1.75] max-w-md mb-8 md:mb-10">
-                    {product.description ||
-                      'Structured fit. Street cut. Pockets that actually hold your phone and your attitude.'}
+                    {product.slug.includes('korean')
+                      ? 'Korean pants India — sharp, clean, culturally-aware. Korean fashion men India in a street cut built for Delhi.'
+                      : 'Baggy linen pants India — relaxed, breathable linen trousers India for anti-grind summer days.'}
                   </p>
 
-                  <div className="relative mb-2">
-                    <div className="absolute top-3 left-0 right-0 h-px bg-stone" />
-                    <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink/45 mb-5 relative inline-block bg-paper pr-3">
-                      Size (live stock)
-                    </p>
+                  <fieldset className="relative mb-2 border-0 p-0 m-0 min-h-[120px]">
+                    <legend className="font-mono text-[0.6rem] uppercase tracking-widest text-ink/45 mb-5">
+                      Select size for {product.name}
+                    </legend>
                     <div className="flex flex-wrap gap-2.5 md:gap-3">
                       {sizes.map((s) => {
                         const left = sizeStock.get(s) ?? 0;
@@ -547,6 +559,9 @@ export default function PreLaunchPage() {
                           <button
                             key={s}
                             type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            aria-label={`Preorder ${product.name} in size ${s} — ₹${product.price.toLocaleString('en-IN')}`}
                             disabled={out}
                             onClick={() => setSize(s)}
                             className={`drop-btn relative font-mono text-xs uppercase px-3.5 py-2.5 border-2 bg-paper min-h-[44px] disabled:opacity-35 disabled:cursor-not-allowed ${
@@ -565,7 +580,7 @@ export default function PreLaunchPage() {
                         );
                       })}
                     </div>
-                  </div>
+                  </fieldset>
 
                   <a
                     href="#hold"
@@ -599,12 +614,15 @@ export default function PreLaunchPage() {
       </section>
 
       {/* INVENTORY */}
-      <section className="drop-snap-section bg-ink text-paper py-20 md:py-28">
+      <section className="drop-snap-section bg-ink text-paper py-20 md:py-28" aria-labelledby="scarcity-heading">
         <div className={`${CONTAINER} max-w-2xl text-center`}>
           <Reveal>
             <p className="font-mono text-[0.65rem] uppercase tracking-[0.35em] text-terracotta mb-4">
               Chapter 02 — what&apos;s left
             </p>
+            <h2 id="scarcity-heading" className="font-bebas text-2xl md:text-3xl text-paper/80 mb-6">
+              {inv.remaining} units. That&apos;s it.
+            </h2>
           </Reveal>
           <Reveal delay={0.08}>
             <motion.p
@@ -797,6 +815,8 @@ export default function PreLaunchPage() {
         </div>
       </section>
 
+      <PreLaunchFaq />
+
       {/* QUOTE */}
       <section className="py-20 md:py-28 bg-ink overflow-hidden">
         <div className={CONTAINER}>
@@ -816,18 +836,12 @@ export default function PreLaunchPage() {
       </section>
 
       {/* END CAP */}
-      <section className="bg-terracotta text-paper py-16 md:py-20">
+      <section className="bg-terracotta text-paper py-16 md:py-20" aria-labelledby="final-cta-heading">
         <div className={`${CONTAINER} text-center flex flex-col items-center`}>
           <Reveal>
-            {!closed && countdown && (
-              <p className="font-bebas text-4xl md:text-6xl lg:text-7xl tabular-nums mb-5 md:mb-6 tracking-tight">
-                {String(countdown.d).padStart(2, '0')}:{String(countdown.h).padStart(2, '0')}:
-                {String(countdown.m).padStart(2, '0')}:{String(countdown.s).padStart(2, '0')}
-              </p>
-            )}
-            <p className="font-rajdhani font-bold uppercase tracking-[0.18em] text-sm mb-6 md:mb-8 max-w-md">
-              Timer zero = batch band. Phir waitlist.
-            </p>
+            <h2 id="final-cta-heading" className="font-rajdhani font-bold uppercase tracking-[0.18em] text-sm mb-6 md:mb-8 max-w-md">
+              Batch 001 closes when the timer hits zero.
+            </h2>
             {!closed && product && (
               <motion.a
                 href="#hold"
@@ -842,10 +856,20 @@ export default function PreLaunchPage() {
         </div>
       </section>
 
-      <footer className={`${CONTAINER} py-6 border-t border-stone`}>
-        <p className="font-mono text-[0.6rem] text-ink/40 uppercase tracking-[0.2em] text-center">
-          hello@theshehrico.in
-        </p>
+      <footer className={`${CONTAINER} py-8 border-t border-stone`}>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-center md:text-left">
+          <p className="font-mono text-[0.62rem] text-ink/50 uppercase tracking-[0.18em]">
+            Shehri Co. · Delhi NCR streetwear India ·{' '}
+            <a href="https://theshehri.co" className="text-terracotta hover:text-ink">
+              theshehri.co
+            </a>
+          </p>
+          <nav className="flex flex-wrap justify-center gap-4 font-mono text-[0.62rem] uppercase tracking-widest text-ink/60" aria-label="Footer navigation">
+            <a href="/size-guide" className="hover:text-terracotta">Korean Pants Size Guide</a>
+            <a href="/about" className="hover:text-terracotta">About Shehri Co.</a>
+            <a href="https://instagram.com/theshehrico" target="_blank" rel="noopener noreferrer" className="hover:text-terracotta">Instagram</a>
+          </nav>
+        </div>
       </footer>
 
       {!done && !closed && product && (
@@ -862,6 +886,6 @@ export default function PreLaunchPage() {
           </a>
         </motion.div>
       )}
-    </div>
+    </main>
   );
 }

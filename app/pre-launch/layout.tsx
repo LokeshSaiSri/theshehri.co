@@ -1,9 +1,17 @@
 import type { Metadata } from 'next';
+import { SEO_DESCRIPTION, SEO_TITLE, SITE_URL } from '@/lib/seo/site-metadata';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Drop 001 Preorder | The Shehri Co.',
-  description:
-    "Preorder Drop 001 — bottoms only, limited stock, no restocks. The Shehri Co., Delhi NCR.",
+  title: SEO_TITLE,
+  description: SEO_DESCRIPTION,
+  alternates: { canonical: SITE_URL },
+  openGraph: {
+    url: SITE_URL,
+    title: 'Shehri Co. — Korean Pants & Linen Bottoms for Indian Streets',
+    description: SEO_DESCRIPTION,
+  },
 };
 
 export default function PreLaunchLayout({ children }: { children: React.ReactNode }) {
