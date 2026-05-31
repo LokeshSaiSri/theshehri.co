@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, Search, ArrowLeft, ChevronDown, X, Check } from 'lucide-react';
 import { getProductBySlug, getAvailableStock, type Product, type ProductVariant } from '@/lib/products';
+import { SITE_CONTACT } from '@/lib/site-contact';
 import { sortVariants } from '@/lib/sizes';
 import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
 import { useCart, type CartItem } from '@/context/CartContext';
@@ -574,7 +575,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
               <div className="pt-6 font-mono text-[0.72rem] text-ink/70 space-y-1 leading-relaxed">
                 <p>🚚 Ships within 5–7 days · Delhi NCR first</p>
                 <p>📦 Flat ₹199 shipping · Free above ₹2,000</p>
-                <p>↩️ Returns via DM · <a href="https://instagram.com" target="_blank" rel="noreferrer" className="underline underline-offset-2 decoration-stone/40 hover:text-ink">Instagram</a></p>
+                <p>↩️ Returns via DM · <a href={SITE_CONTACT.instagramUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2 decoration-stone/40 hover:text-ink">Instagram</a></p>
               </div>
             </div>
           </div>

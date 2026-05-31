@@ -1,4 +1,5 @@
 import { SITE_URL } from '@/lib/seo/site-metadata';
+import { SITE_CONTACT } from '@/lib/site-contact';
 
 export const organizationSchema = {
   '@context': 'https://schema.org',
@@ -9,7 +10,7 @@ export const organizationSchema = {
   logo: `${SITE_URL}/og-image.jpg`,
   description:
     "India's first bottoms-only D2C streetwear brand. Korean pants and baggy linen pants built for urban Gen Z.",
-  foundingDate: '2025',
+  foundingDate: String(SITE_CONTACT.foundedYear),
   foundingLocation: {
     '@type': 'Place',
     name: 'New Delhi, India',
@@ -21,10 +22,11 @@ export const organizationSchema = {
   contactPoint: {
     '@type': 'ContactPoint',
     contactType: 'customer support',
-    email: 'hello@theshehri.co',
+    email: SITE_CONTACT.email,
+    telephone: SITE_CONTACT.phoneDisplay,
     availableLanguage: ['English', 'Hindi'],
   },
-  sameAs: ['https://instagram.com/theshehrico', 'https://twitter.com/shehrico'],
+  sameAs: [SITE_CONTACT.instagramUrl],
 };
 
 export const productGroupSchema = {
@@ -183,7 +185,7 @@ export const faqSchema = {
       name: 'Can I cancel or return my preorder?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Full refund within 7 days of placing your preorder — no questions asked. After that, we've already begun production. Post-delivery returns handled case by case at hello@theshehri.co.",
+        text: `Full refund within 7 days of placing your preorder — no questions asked. After that, we've already begun production. Post-delivery returns handled case by case at ${SITE_CONTACT.email}.`,
       },
     },
     {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { SITE_CONTACT } from '@/lib/site-contact';
 import { motion } from 'motion/react';
 import { ShoppingBag } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -243,7 +244,7 @@ export default function Home() {
             transition={{ duration: 0.6, ease: [0.83, 0, 0.17, 1], delay: 0.4 }}
             className="font-mono text-ink/70 text-[0.75rem] md:text-[0.85rem] tracking-widest"
           >
-            EST. 2025 · DELHI NCR
+            EST. {SITE_CONTACT.foundedYear} · DELHI NCR
           </motion.div>
         </div>
       </motion.div>
@@ -363,7 +364,7 @@ export default function Home() {
           aria-hidden
         >
           <p className="hero-est-vertical font-mono text-paper/75 text-[0.58rem] uppercase tracking-[0.38em]">
-            EST. 2025 · DELHI NCR
+            EST. {SITE_CONTACT.foundedYear} · DELHI NCR
           </p>
         </motion.div>
 
@@ -376,7 +377,7 @@ export default function Home() {
             className="md:hidden mb-6"
           >
             <p className="font-mono text-paper/90 text-[0.62rem] uppercase tracking-[0.28em] bg-ink/60 inline-block px-2.5 py-1.5 border border-paper/10">
-              EST. 2025 · DELHI NCR
+              EST. {SITE_CONTACT.foundedYear} · DELHI NCR
             </p>
           </motion.div>
 
@@ -573,7 +574,7 @@ it's gone.`}
       <section className="w-full bg-paper pt-32 overflow-hidden flex flex-col items-center">
         <FadeInSection className="w-full flex flex-col items-center">
           <div className="font-mono text-[0.8rem] text-ink/70 text-center mb-16 px-6">
-            © 2025 The Shehri Co. · Delhi NCR · All drops are final.
+            © {SITE_CONTACT.foundedYear} The Shehri Co. · Delhi NCR · All drops are final.
           </div>
           
           <div className="w-full flex justify-center whitespace-nowrap translate-y-[15%] md:translate-y-[18%]">
@@ -594,7 +595,7 @@ it's gone.`}
             <div className="font-mono text-[0.75rem] text-stone/70">
               Bottoms only. Delhi NCR.
             </div>
-            <a href="#" className="font-mono text-[0.75rem] text-stone/70 underline decoration-stone/40 underline-offset-4 hover:text-paper hover:decoration-paper transition-colors w-fit mt-1">
+            <a href={SITE_CONTACT.instagramUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-[0.75rem] text-stone/70 underline decoration-stone/40 underline-offset-4 hover:text-paper hover:decoration-paper transition-colors w-fit mt-1">
               Instagram ↗
             </a>
           </div>
@@ -604,7 +605,7 @@ it's gone.`}
               <Link href="/shop" className="hover:text-paper transition-colors w-fit">SHOP</Link>
               <Link href="/about" className="hover:text-paper transition-colors w-fit">ABOUT</Link>
               <Link href="/track" className="hover:text-paper transition-colors w-fit">TRACK YOUR ORDER</Link>
-              <a href="mailto:hello@theshehrico.in" className="hover:text-paper transition-colors w-fit">CONTACT</a>
+              <a href={`mailto:${SITE_CONTACT.email}`} className="hover:text-paper transition-colors w-fit">CONTACT</a>
             </div>
           </div>
           
@@ -615,8 +616,11 @@ it's gone.`}
             <div className="font-rajdhani text-[0.8rem] font-bold text-stone/70">
               Returns: DM us.
             </div>
-            <a href="mailto:hello@theshehrico.in" className="font-rajdhani text-[0.8rem] font-bold text-stone/70 hover:text-paper transition-colors">
-              hello@theshehrico.in
+            <a href={SITE_CONTACT.telUrl} className="font-rajdhani text-[0.8rem] font-bold text-stone/70 hover:text-paper transition-colors">
+              {SITE_CONTACT.phoneDisplay}
+            </a>
+            <a href={`mailto:${SITE_CONTACT.email}`} className="font-rajdhani text-[0.8rem] font-bold text-stone/70 hover:text-paper transition-colors">
+              {SITE_CONTACT.email}
             </a>
           </div>
         </FadeInSection>

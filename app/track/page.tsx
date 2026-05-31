@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArrowRight, ExternalLink, Package } from 'lucide-react';
+import { SITE_CONTACT } from '@/lib/site-contact';
 
 const STEPS = ['Ordered', 'Processing', 'Shipped', 'Delivered'] as const;
 
@@ -117,12 +118,12 @@ function TrackContent() {
             <p className="font-mono text-[0.82rem] text-ink/80 leading-relaxed">
               We couldn&apos;t find this order. Check the number and try again. If you need help, DM us{' '}
               <a
-                href="https://instagram.com/theshehrico"
+                href={SITE_CONTACT.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-terracotta hover:underline"
               >
-                @shehrico
+                {SITE_CONTACT.instagramHandle}
               </a>{' '}
               on Instagram.
             </p>
@@ -134,12 +135,12 @@ function TrackContent() {
             <p className="font-mono text-[0.82rem] text-red-700 leading-relaxed">
               This order was cancelled. If you think this is wrong, DM us{' '}
               <a
-                href="https://instagram.com/theshehrico"
+                href={SITE_CONTACT.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-terracotta hover:underline"
               >
-                @shehrico
+                {SITE_CONTACT.instagramHandle}
               </a>{' '}
               on Instagram.
             </p>

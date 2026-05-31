@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { reserveOrderItems, releaseOrderItems } from '@/lib/inventory';
 import { Resend } from 'resend';
+import { SITE_CONTACT } from '@/lib/site-contact';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
@@ -250,7 +251,7 @@ async function sendOrderEmails(
     </div>
     <div style="background:#191714;padding:20px 32px;text-align:center;">
       <p style="margin:0 0 4px;color:#CEC8BF;font-size:11px;letter-spacing:3px;text-transform:uppercase;">The Shehri Co.</p>
-      <p style="margin:0;color:#888;font-size:10px;font-family:monospace;">EST. 2025 · DELHI NCR · Fit With No Logo</p>
+      <p style="margin:0;color:#888;font-size:10px;font-family:monospace;">EST. ${SITE_CONTACT.foundedYear} · DELHI NCR · Fit With No Logo</p>
     </div>
   </div>
 </body>

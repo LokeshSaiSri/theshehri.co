@@ -1,3 +1,5 @@
+import { SITE_CONTACT } from '@/lib/site-contact';
+
 import type { Metadata } from 'next';
 
 /** Title ≤60 chars */
@@ -60,8 +62,8 @@ export const siteMetadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@shehrico',
-    creator: '@shehrico',
+    site: SITE_CONTACT.instagramHandle,
+    creator: SITE_CONTACT.instagramHandle,
     title: 'Shehri Co. | Korean Pants & Linen Bottoms — Preorder Now',
     description:
       "India's first bottoms-only streetwear. Korean pants and baggy linen pants. Batch 001 — limited units, ships in 21 days.",

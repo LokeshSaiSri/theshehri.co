@@ -11,6 +11,7 @@ import {
 } from '@/lib/products';
 import { sortSizes } from '@/lib/sizes';
 import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
+import { SITE_CONTACT } from '@/lib/site-contact';
 import { PreLaunchFaq } from '@/components/seo/PreLaunchFaq';
 
 const CONTAINER = 'max-w-[1400px] mx-auto w-full px-6 md:px-12';
@@ -858,7 +859,8 @@ export default function PreLaunchPage() {
             <a href="/size-guide" className="hover:text-terracotta">Korean Pants Size Guide</a>
             <a href="/about" className="hover:text-terracotta">About Shehri Co.</a>
             <a href="/track" className="hover:text-terracotta">Track your order</a>
-            <a href="https://instagram.com/theshehrico" target="_blank" rel="noopener noreferrer" className="hover:text-terracotta">Instagram</a>
+            <a href={`mailto:${SITE_CONTACT.email}`} className="hover:text-terracotta">Contact</a>
+            <a href={SITE_CONTACT.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-terracotta">Instagram</a>
           </nav>
         </div>
       </footer>

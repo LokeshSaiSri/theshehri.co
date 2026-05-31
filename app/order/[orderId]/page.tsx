@@ -4,6 +4,7 @@ import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'motion/react';
+import { SITE_CONTACT } from '@/lib/site-contact';
 import { Check, Instagram } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
@@ -204,10 +205,10 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
           <div className="bg-ink p-6 flex flex-col sm:flex-row items-center gap-5">
             <div className="flex-1">
               <p className="font-bebas text-paper text-xl tracking-widest mb-1">TAG US WHEN IT ARRIVES</p>
-              <p className="font-mono text-[0.72rem] text-ink/70">@theshehrico · we repost every single one.</p>
+              <p className="font-mono text-[0.72rem] text-ink/70">{SITE_CONTACT.instagramHandle} · we repost every single one.</p>
             </div>
             <a
-              href="https://instagram.com/theshehrico"
+              href={SITE_CONTACT.instagramUrl}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-2 bg-terracotta text-white font-rajdhani font-bold text-xs tracking-widest uppercase px-5 py-3 hover:bg-paper hover:text-terracotta transition-colors duration-300 flex-shrink-0"

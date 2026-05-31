@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
+import { SITE_CONTACT } from '@/lib/site-contact';
 
 export default function AdminSettings() {
   const [shipping, setShipping]   = useState('199');
@@ -106,8 +107,9 @@ export default function AdminSettings() {
           {[
             { label: 'Store Name',   value: 'The Shehri Co.' },
             { label: 'Location',     value: 'Delhi NCR, India' },
-            { label: 'Owner Email',  value: process.env.NEXT_PUBLIC_OWNER_EMAIL ?? 'Set OWNER_EMAIL in .env.local' },
-            { label: 'Instagram',    value: '@theshehrico' },
+            { label: 'Owner Email',  value: SITE_CONTACT.email },
+            { label: 'Phone',        value: SITE_CONTACT.phoneDisplay },
+            { label: 'Instagram',    value: SITE_CONTACT.instagramHandle },
           ].map(row => (
             <div key={row.label} className="flex justify-between py-2.5 border-b border-[#F9FAFB] last:border-0">
               <span className="font-mono text-[0.68rem] uppercase tracking-wider text-ink/80">{row.label}</span>
