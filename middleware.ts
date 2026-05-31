@@ -2,84 +2,95 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
 const SECRET = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET!);
-const COOKIE  = 'shehri_admin';
+const COOKIE = 'shehri_admin';
+
+const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow' };
+
+async function verifyAdminSession(req: NextRequest): Promise<boolean> {
+  const token = req.cookies.get(COOKIE)?.value;
+  if (!token) return false;
+  try {
+    await jwtVerify(token, SECRET);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // 1. Admin Auth & Secret Gatekeeper
-  if (pathname.startsWith('/admin')) {
-    // Secret Keyboard Shortcut Gatekeeper
-    if (!req.cookies.has('admin_unlocked')) {
-      return NextResponse.redirect(new URL('/pre-launch', req.url));
+  // 1. Protect admin API routes (matcher includes /api/admin/*)
+  if (pathname.startsWith('/api/admin')) {
+    if (pathname === '/api/admin/login' || pathname === '/api/admin/logout') {
+      return NextResponse.next();
     }
 
-    if (pathname === '/admin/login') {
-      return NextResponse.next();
+    if (!(await verifyAdminSession(req))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const token = req.cookies.get(COOKIE)?.value;
-    if (!token) {
-      return NextResponse.redirect(new URL('/admin/login', req.url));
-    }
-    try {
-      await jwtVerify(token, SECRET);
-      return NextResponse.next();
-    } catch {
-      const res = NextResponse.redirect(new URL('/admin/login', req.url));
-      res.cookies.delete(COOKIE);
-      return res;
-    }
+
+    return NextResponse.next();
   }
 
-  // 2. Global Pre-launch Logic
+  // 2. Protect admin pages — always reachable (even during pre-launch)
+  if (pathname.startsWith('/admin')) {
+    if (pathname === '/admin/login') {
+      const res = NextResponse.next();
+      Object.entries(NOINDEX).forEach(([k, v]) => res.headers.set(k, v));
+      return res;
+    }
+
+    if (!(await verifyAdminSession(req))) {
+      const res = NextResponse.redirect(new URL('/admin/login', req.url));
+      res.cookies.delete(COOKIE);
+      Object.entries(NOINDEX).forEach(([k, v]) => res.headers.set(k, v));
+      return res;
+    }
+
+    const res = NextResponse.next();
+    Object.entries(NOINDEX).forEach(([k, v]) => res.headers.set(k, v));
+    return res;
+  }
+
+  // 3. Global pre-launch logic
   if (pathname !== '/pre-launch') {
     try {
-      // Check Supabase directly using REST API (Edge compatible)
-      // We use the service role key if available to bypass RLS read restrictions
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/store_settings?id=eq.is_launched&select=value`, {
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        },
-        // Do not cache this edge request so the Launch toggle works instantly
-        cache: 'no-store'
-      });
-      
+      const supabaseKey =
+        process.env.SUPABASE_SERVICE_ROLE_KEY ||
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/store_settings?id=eq.is_launched&select=value`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          cache: 'no-store',
+        }
+      );
+
       if (res.ok) {
         const data = await res.json();
         const isLaunched = data[0]?.value === 'true';
-        
-        console.log('[Middleware] Supabase store_settings is_launched:', isLaunched, 'Raw data:', data);
 
         if (!isLaunched) {
           return NextResponse.redirect(new URL('/pre-launch', req.url));
         }
       } else {
-        // If table doesn't exist yet, default to pre-launch mode
         return NextResponse.redirect(new URL('/pre-launch', req.url));
       }
-    } catch (e) {
+    } catch {
       return NextResponse.redirect(new URL('/pre-launch', req.url));
     }
   }
 
   return NextResponse.next();
-
-
-
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     * - any file with an image extension (.png, .jpg, etc)
-     */
+    '/api/admin/:path*',
     '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

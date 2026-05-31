@@ -73,7 +73,10 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="w-full bg-[#0F0E0D] border border-white/10 text-paper font-mono text-sm px-4 py-3 pr-10 focus:outline-none focus:border-terracotta/60 transition-colors placeholder:text-ink/80"
-                  placeholder="Enter admin password"
+                  placeholder="Required — owner password only"
+                  autoComplete="current-password"
+                  required
+                  minLength={1}
                   autoFocus
                 />
                 <button

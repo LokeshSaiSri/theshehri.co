@@ -6,7 +6,6 @@ import { Check } from 'lucide-react';
 export default function AdminSettings() {
   const [shipping, setShipping]   = useState('199');
   const [freeAt, setFreeAt]       = useState('2000');
-  const [adminPw, setAdminPw]     = useState('');
   const [saved, setSaved]         = useState<string | null>(null);
   const [isLaunched, setIsLaunched] = useState(false);
   const [loadingLaunch, setLoadingLaunch] = useState(true);
@@ -113,19 +112,16 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      {/* Admin password change */}
+      {/* Admin access — password is set via server env, not in the UI */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
         <h2 className="font-rajdhani font-bold text-[#191714] text-sm uppercase tracking-wider mb-5">Admin Access</h2>
-        <div className="mb-4">
-          <label className="font-mono text-[0.62rem] uppercase tracking-widest text-ink/80 block mb-2">New Password</label>
-          <input type="password" value={adminPw} onChange={e => setAdminPw(e.target.value)} placeholder="New admin password"
-            className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-3 py-2.5 font-mono text-[0.82rem] focus:outline-none focus:border-terracotta/40 placeholder:text-ink/80" />
-        </div>
-        <p className="font-mono text-[0.65rem] text-ink/80 mb-4">Update ADMIN_PASSWORD in .env.local to change the admin password permanently.</p>
-        <button onClick={() => mockSave('password')} disabled={!adminPw}
-          className={`flex items-center gap-2 px-4 py-2.5 font-rajdhani font-bold text-[0.75rem] tracking-widest uppercase rounded-lg transition-colors disabled:opacity-40 ${saved === 'password' ? 'bg-green-600 text-white' : 'bg-[#191714] text-white hover:bg-[#2a2520]'}`}>
-          {saved === 'password' ? <><Check size={13} />Saved</> : 'Update Password'}
-        </button>
+        <p className="font-mono text-[0.72rem] text-ink/80 leading-relaxed">
+          Admin login is protected by <code className="text-[0.68rem]">ADMIN_PASSWORD</code> in your Vercel environment variables.
+          To change it, update that variable and redeploy — there is no in-app password field.
+        </p>
+        <p className="font-mono text-[0.65rem] text-ink/60 mt-3">
+          Login URL: <span className="text-[#191714]">/admin/login</span> · Session expires after 7 days.
+        </p>
       </div>
 
       {/* Store Launch Status */}
