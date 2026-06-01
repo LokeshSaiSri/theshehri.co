@@ -33,7 +33,7 @@ export async function POST() {
         .from('order_items')
         .select('product_id, size, quantity, color, order:orders!inner(payment_status)')
         .eq('order.payment_status', 'paid'),
-      supabase.from('preorders').select('product, size'),
+      supabase.from('preorders').select('product, size, color'),
       supabase.from('products').select('id, name'),
     ]);
 
@@ -65,7 +65,7 @@ export async function POST() {
   for (const pre of preorders ?? []) {
     const productId = pre.product ? productNameToId[pre.product] : undefined;
     if (!productId || !pre.size) continue;
-    const variant = await resolveVariant(supabase, productId, pre.size);
+    const variant = await resolveVariant(supabase, productId, pre.size, pre.color);
     if (!variant) continue;
     reservedByVariant.set(variant.id, (reservedByVariant.get(variant.id) ?? 0) + 1);
   }

@@ -45,6 +45,7 @@ export default function AdminPreorders() {
                 <th className="text-left font-mono text-[0.62rem] uppercase tracking-widest text-ink/50 px-5 py-3">Email</th>
                 <th className="text-left font-mono text-[0.62rem] uppercase tracking-widest text-ink/50 px-5 py-3">Phone</th>
                 <th className="text-left font-mono text-[0.62rem] uppercase tracking-widest text-ink/50 px-5 py-3">Product</th>
+                <th className="text-left font-mono text-[0.62rem] uppercase tracking-widest text-ink/50 px-5 py-3">Color</th>
                 <th className="text-left font-mono text-[0.62rem] uppercase tracking-widest text-ink/50 px-5 py-3">Size</th>
                 <th className="text-left font-mono text-[0.62rem] uppercase tracking-widest text-ink/50 px-5 py-3">Date</th>
               </tr>
@@ -56,6 +57,7 @@ export default function AdminPreorders() {
                   <td className="px-5 py-3 font-mono text-[0.75rem] text-ink/70">{p.email}</td>
                   <td className="px-5 py-3 font-mono text-[0.75rem] text-ink/70">{p.phone || '—'}</td>
                   <td className="px-5 py-3 font-mono text-[0.75rem] text-ink/70">{p.product || '—'}</td>
+                  <td className="px-5 py-3 font-mono text-[0.75rem] text-ink/70">{p.color || '—'}</td>
                   <td className="px-5 py-3">
                     <span className="inline-block bg-terracotta/10 text-terracotta font-mono text-[0.65rem] font-bold uppercase px-2 py-0.5 rounded">
                       {p.size || '—'}

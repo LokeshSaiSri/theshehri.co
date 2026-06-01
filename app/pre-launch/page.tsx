@@ -272,6 +272,7 @@ export default function PreLaunchPage() {
   const [idx, setIdx] = useState(0);
   const [swapDir, setSwapDir] = useState(1);
   const [size, setSize] = useState<Size | ''>('');
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -280,14 +281,25 @@ export default function PreLaunchPage() {
   const { countdown, closed } = useCountdown(drop?.launch_date ?? null);
   const inv = useMemo(() => inventoryFromProducts(products), [products]);
 
+  const availableColors = useMemo(() => {
+    if (!product) return [];
+    return Array.from(
+      new Set((product.variants ?? []).map((v) => v.color).filter(Boolean))
+    ) as string[];
+  }, [product]);
+
   const sizeStock = useMemo(() => {
     const m = new Map<Size, number>();
     if (!product) return m;
-    for (const v of product.variants ?? []) {
+    const variants =
+      availableColors.length > 0 && selectedColor
+        ? (product.variants ?? []).filter((v) => v.color === selectedColor)
+        : (product.variants ?? []);
+    for (const v of variants) {
       m.set(v.size, (m.get(v.size) ?? 0) + getAvailableStock(v));
     }
     return m;
-  }, [product]);
+  }, [product, selectedColor, availableColors.length]);
 
   const sizes = useMemo(() => sortSizes(sizeStock.keys()), [sizeStock]);
   const batchId = `B001-${String(inv.reserved + 1).padStart(4, '0')}`;
@@ -321,9 +333,23 @@ export default function PreLaunchPage() {
 
   useEffect(() => {
     setSize('');
+    setSelectedColor(null);
     setDone(false);
     setErr(null);
   }, [idx]);
+
+  useEffect(() => {
+    if (!product) return;
+    const colors = Array.from(
+      new Set((product.variants ?? []).map((v) => v.color).filter(Boolean))
+    ) as string[];
+    if (colors.length > 0) setSelectedColor(colors[0]);
+    else setSelectedColor(null);
+  }, [product]);
+
+  useEffect(() => {
+    setSize('');
+  }, [selectedColor]);
 
   useEffect(() => {
     if (!size) return;
@@ -334,6 +360,10 @@ export default function PreLaunchPage() {
     e.preventDefault();
     if (!product || !size) {
       setErr('Size pick karo pehle.');
+      return;
+    }
+    if (availableColors.length > 0 && !selectedColor) {
+      setErr('Color pick karo pehle.');
       return;
     }
     if ((sizeStock.get(size) ?? 0) === 0) {
@@ -352,6 +382,7 @@ export default function PreLaunchPage() {
           email: fd.get('email'),
           phone: fd.get('phone') || undefined,
           size,
+          color: selectedColor || undefined,
           product: product.name,
           productId: product.id,
         }),
@@ -536,9 +567,46 @@ export default function PreLaunchPage() {
                       : 'Baggy linen pants India — relaxed, breathable linen trousers India for anti-grind summer days.'}
                   </p>
 
+                  {availableColors.length > 0 && (
+                    <fieldset className="relative mb-8 border-0 p-0 m-0">
+                      <legend className="font-mono text-[0.6rem] uppercase tracking-widest text-ink/45 mb-4">
+                        Select color
+                      </legend>
+                      <div className="flex flex-wrap gap-2.5 md:gap-3">
+                        {availableColors.map((color) => {
+                          const selected = selectedColor === color;
+                          return (
+                            <button
+                              key={color}
+                              type="button"
+                              role="radio"
+                              aria-checked={selected}
+                              aria-label={`Color ${color}`}
+                              onClick={() => setSelectedColor(color)}
+                              className={`drop-btn flex items-center gap-2 font-mono text-xs uppercase px-3.5 py-2.5 border-2 bg-paper min-h-[44px] ${
+                                selected
+                                  ? 'border-terracotta -rotate-1 shadow-[3px_4px_0_#C04E18]'
+                                  : 'border-ink rotate-1 shadow-[2px_3px_0_#191714] hover:-translate-y-1 hover:shadow-[4px_5px_0_#191714]'
+                              }`}
+                            >
+                              <span
+                                className="w-3.5 h-3.5 rounded-full border border-ink/20 shrink-0"
+                                style={{
+                                  backgroundColor: color.toLowerCase().replace(/\s+/g, ''),
+                                }}
+                              />
+                              {color}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+                  )}
+
                   <fieldset className="relative mb-2 border-0 p-0 m-0 min-h-[120px]">
                     <legend className="font-mono text-[0.6rem] uppercase tracking-widest text-ink/45 mb-5">
                       Select size for {product.name}
+                      {selectedColor ? ` · ${selectedColor}` : ''}
                     </legend>
                     <div className="flex flex-wrap gap-2.5 md:gap-3">
                       {sizes.map((s) => {
@@ -722,7 +790,9 @@ export default function PreLaunchPage() {
                       Batch 001 mein aa gaye.
                     </p>
                     <p className="font-mono text-sm text-ink/60">
-                      {product?.name} · size {size}. Inbox check karo.
+                      {product?.name}
+                      {selectedColor ? ` · ${selectedColor}` : ''}
+                      {' · '}size {size}. Inbox check karo.
                     </p>
                   </motion.div>
                 ) : (
@@ -733,6 +803,12 @@ export default function PreLaunchPage() {
                   >
                     <p className="font-mono text-xs text-ink/50 leading-relaxed border-l-2 border-terracotta pl-3">
                       Item: <strong className="text-ink">{product?.name ?? '—'}</strong>
+                      {selectedColor && (
+                        <>
+                          {' '}
+                          · Color <strong>{selectedColor}</strong>
+                        </>
+                      )}
                       {size && (
                         <>
                           {' '}

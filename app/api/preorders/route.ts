@@ -7,11 +7,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = await req.json();
-    const { name, email, phone, product, productId, size } = data;
+    const { name, email, phone, product, productId, size, color } = data;
 
     if (!name || !email || !product || !size) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const colorValue = color?.trim() || null;
 
     let resolvedProductId = productId as string | undefined;
     if (!resolvedProductId) {
@@ -32,12 +34,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    const { available } = await getVariantAvailability(supabase, productIdForReserve, size);
+    const { available } = await getVariantAvailability(
+      supabase,
+      productIdForReserve,
+      size,
+      colorValue
+    );
     if (available <= 0) {
       return NextResponse.json({ error: 'Size sold out' }, { status: 409 });
     }
 
-    const reserveResult = await reserveVariant(supabase, productIdForReserve, size, 1);
+    const reserveResult = await reserveVariant(
+      supabase,
+      productIdForReserve,
+      size,
+      1,
+      colorValue
+    );
     if (!reserveResult.ok) {
       return NextResponse.json({ error: 'Size just sold out — try another' }, { status: 409 });
     }
@@ -48,11 +61,12 @@ export async function POST(req: NextRequest) {
       phone: phone || null,
       product,
       size,
+      color: colorValue,
     });
 
     if (insertError) {
       console.error('[preorders] Supabase insert error:', insertError);
-      const variant = await resolveVariant(supabase, productIdForReserve, size);
+      const variant = await resolveVariant(supabase, productIdForReserve, size, colorValue);
       if (variant) {
         await supabase
           .from('product_variants')
