@@ -36,6 +36,22 @@ export function getThumbnailForColor(
   return getImagesForColor(product, color)[0] || '';
 }
 
+const CARD_IMAGE_COLOR_BY_SLUG: Record<string, string> = {
+  'korean-pants': 'black',
+};
+
+export function getProductCardImage(
+  product: Pick<Product, 'slug' | 'images' | 'color_images'>,
+): string {
+  const preferredColor = CARD_IMAGE_COLOR_BY_SLUG[product.slug];
+  if (preferredColor) {
+    const colorImage = getThumbnailForColor(product, preferredColor);
+    if (colorImage) return colorImage;
+  }
+
+  return product.images?.[0] || '';
+}
+
 export function deriveLegacyImages(colorImages: ColorImages, colors: string[]): string[] {
   for (const color of colors) {
     if (colorImages[color]?.length) return colorImages[color];

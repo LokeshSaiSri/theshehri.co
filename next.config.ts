@@ -2,6 +2,8 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Next.js tracing uses this optional peer dep — keep it out of webpack vendor chunks.
+  serverExternalPackages: ['@opentelemetry/api'],
   eslint: {
     ignoreDuringBuilds: true,
   },

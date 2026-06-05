@@ -74,6 +74,17 @@ body {
   .hero-photo-boost {
     filter: brightness(1.08) contrast(1.06) saturate(1.1);
   }
+
+  .hero-photo-position {
+    object-fit: cover;
+    object-position: center 46%;
+  }
+
+  @media (min-width: 768px) {
+    .hero-photo-position {
+      object-position: center bottom;
+    }
+  }
 }
 
 @keyframes ticker {
