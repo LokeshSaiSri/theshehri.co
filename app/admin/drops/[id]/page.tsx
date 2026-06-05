@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2, Trash2 } from 'lucide-react';
+import { uploadAdminImage } from '@/lib/admin-image-upload';
 
 const DEFAULT_DROP = {
   id: 'new', name: '', slug: '', description: '', cover_image: '', launch_date: new Date().toISOString().slice(0,16), is_active: true
@@ -16,6 +17,7 @@ export default function AdminDropDetail({ params }: { params: Promise<{ id: stri
   const [drop, setDrop] = useState<any>(DEFAULT_DROP);
   const [loading, setLoading] = useState(id !== 'new');
   const [saving, setSaving] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
 
   useEffect(() => {
     if (id !== 'new') {
@@ -101,36 +103,29 @@ export default function AdminDropDetail({ params }: { params: Promise<{ id: stri
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="font-mono text-[0.62rem] uppercase tracking-widest text-ink/50 block">Cover Image URL</label>
-            <label className="cursor-pointer bg-terracotta text-white px-2 py-1 rounded text-[0.55rem] font-bold uppercase tracking-widest hover:bg-[#a84015] transition-colors">
-              <span className="flex items-center gap-1">Upload</span>
+            <label className={`cursor-pointer bg-terracotta text-white px-2 py-1 rounded text-[0.55rem] font-bold uppercase tracking-widest hover:bg-[#a84015] transition-colors ${coverUploading ? 'opacity-70 pointer-events-none' : ''}`}>
+              <span className="flex items-center gap-1">
+                {coverUploading ? <Loader2 size={10} className="animate-spin" /> : null}
+                {coverUploading ? 'Uploading...' : 'Upload'}
+              </span>
               <input 
                 type="file" 
                 accept="image/*" 
-                className="hidden" 
+                className="hidden"
+                disabled={coverUploading}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  
-                  const formData = new FormData();
-                  formData.append('file', file);
-                  
-                  const uploadBtn = e.target.previousElementSibling as HTMLElement;
-                  const originalText = uploadBtn.innerText;
-                  uploadBtn.innerText = 'UPLOADING...';
-                  
+
+                  setCoverUploading(true);
                   try {
-                    const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.url) {
-                      setDrop({...drop, cover_image: data.url});
-                    } else {
-                      alert(data.error || 'Upload failed');
-                    }
+                    const url = await uploadAdminImage(file);
+                    setDrop({ ...drop, cover_image: url });
                   } catch (err) {
-                    alert('Error uploading file');
+                    alert(err instanceof Error ? err.message : 'Error uploading file');
                   } finally {
-                    uploadBtn.innerText = originalText;
-                    e.target.value = ''; // Reset input
+                    setCoverUploading(false);
+                    e.target.value = '';
                   }
                 }}
               />

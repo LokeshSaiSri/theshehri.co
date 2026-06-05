@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS products (
   price        int NOT NULL,
   description  text,
   images       text[],
+  color_images jsonb DEFAULT '{}'::jsonb,
   fabric_info  text,
   fit_notes    text,
   is_active    boolean DEFAULT true,
@@ -76,7 +77,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   id            uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   order_id      uuid REFERENCES orders(id) ON DELETE CASCADE,
   product_id    uuid REFERENCES products(id),
-  variant_id    uuid REFERENCES product_variants(id),
+  variant_id    uuid REFERENCES product_variants(id) ON DELETE SET NULL,
   product_name  text NOT NULL,
   size          text NOT NULL,
   price         int NOT NULL,
@@ -137,7 +138,7 @@ CREATE TABLE IF NOT EXISTS returns (
 
 CREATE TABLE IF NOT EXISTS stock_history (
   id              uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
-  variant_id      uuid REFERENCES product_variants(id),
+  variant_id      uuid REFERENCES product_variants(id) ON DELETE CASCADE,
   previous_stock  int,
   new_stock       int,
   changed_by      text DEFAULT 'admin',
@@ -212,10 +213,10 @@ INSERT INTO products (slug, name, price, description, images, fabric_info, fit_n
   'korean-pants',
   'Korean Pants',
   2000,
-  'Structured silhouette. Street-ready. No logo, no compromise.',
+  'Korean-inspired trousers built for Delhi streets — relaxed through the hip, clean taper below the knee, zero logo noise. Structured enough to hold a silhouette, easy enough to live in all day. Part of Batch 001 — limited run, no restocks.',
   ARRAY['/model.png', '/details.png'],
-  '100% Cotton Twill. Medium weight. Machine wash cold.',
-  'Slim through the thigh, tapered below the knee. Size up if between sizes.'
+  'Premium cotton twill with a medium hand-feel. Breathable for long days out, substantial enough to drape clean. Side pockets + back pockets. Machine wash cold, inside out. Hang dry. Low iron if needed.',
+  'Relaxed fit with a tapered leg — sits at the natural waist. True to size for the intended drape; size up if you want a looser street hang or are between sizes. Model refs: 5''10" wears M.'
 ),
 (
   'linen-pants',

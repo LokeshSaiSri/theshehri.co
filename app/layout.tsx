@@ -121,7 +121,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-IN" className={`${fontVars} antialiased`}>
       <head>
-        <link rel="preload" as="image" href="/hero-community.png" fetchPriority="high" />
         <style
           dangerouslySetInnerHTML={{
             __html: `

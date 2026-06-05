@@ -9,6 +9,7 @@ import {
   type Product,
   type Size,
 } from '@/lib/products';
+import { getImagesForColor } from '@/lib/product-images';
 import { sortSizes } from '@/lib/sizes';
 import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
 import { SITE_CONTACT } from '@/lib/site-contact';
@@ -197,12 +198,15 @@ const polaroidStackVariants = {
 function PolaroidStack({
   product,
   direction,
+  color,
 }: {
   product: Product;
   direction: number;
+  color: string | null;
 }) {
-  const primarySrc = product.images[0];
-  const secondarySrc = product.images[1];
+  const images = getImagesForColor(product, color);
+  const primarySrc = images[0];
+  const secondarySrc = images[1];
   const isKorean = product.slug.includes('korean');
   const primaryAlt = isKorean
     ? 'Shehri Co. Korean pants — relaxed fit streetwear bottoms, black'
@@ -215,7 +219,7 @@ function PolaroidStack({
     <div className="absolute inset-0 overflow-hidden">
       <AnimatePresence mode="wait" custom={direction}>
         <motion.div
-          key={product.id}
+          key={`${product.id}-${color || 'default'}`}
           custom={direction}
           variants={polaroidStackVariants}
           initial="enter"
@@ -658,7 +662,7 @@ export default function PreLaunchPage() {
 
             <div className="relative bg-linen border-t lg:border-t-0 lg:border-l border-stone order-1 lg:order-2 min-h-[48vh] sm:min-h-[52vh] lg:min-h-0 lg:sticky lg:top-0 lg:h-screen">
               {product ? (
-                <PolaroidStack product={product} direction={swapDir} />
+                <PolaroidStack product={product} direction={swapDir} color={selectedColor} />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center font-devanagari text-[min(8rem,30vw)] text-terracotta/12">
                   शहरी

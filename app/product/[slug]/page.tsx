@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, ArrowLeft, ChevronDown, X, Check } from 'lucide-react';
 import { getProductBySlug, getAvailableStock, type Product, type ProductVariant } from '@/lib/products';
+import { getImagesForColor, getThumbnailForColor } from '@/lib/product-images';
 import { SITE_CONTACT } from '@/lib/site-contact';
 import { sortVariants } from '@/lib/sizes';
 import { useLiveStockPoll } from '@/lib/useLiveStockPoll';
@@ -161,6 +162,10 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   useLiveStockPoll(refreshProduct);
 
+  useEffect(() => {
+    setActiveImage(0);
+  }, [selectedColor]);
+
   if (!loading && !product) notFound();
 
   function handleSizeSelect(variant: ProductVariant) {
@@ -196,7 +201,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       color: selectedColor || undefined,
       price: product.price,
       quantity: 1,
-      image: product.images[0] || '',
+      image: getThumbnailForColor(product, selectedColor),
     };
 
     addItem(cartItem);
@@ -229,6 +234,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   const selectedVariant = variantsToDisplay.find((v) => v.size === selectedSize);
   const selectedStock = selectedVariant ? getAvailableStock(selectedVariant) : null;
+  const displayImages = getImagesForColor(product, selectedColor);
 
   return (
     <main className="min-h-screen bg-paper selection:bg-terracotta selection:text-white">
@@ -250,16 +256,16 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
             <div className="flex flex-col gap-4">
               {/* Main image */}
               <motion.div
-                key={activeImage}
+                key={`${selectedColor || 'default'}-${activeImage}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
                 className="aspect-[3/4] relative bg-linen overflow-hidden"
               >
-                {product.images[activeImage] && (
+                {displayImages[activeImage] && (
                   <Image
-                    src={product.images[activeImage]}
-                    alt={product.name}
+                    src={displayImages[activeImage]}
+                    alt={selectedColor ? `${product.name} in ${selectedColor}` : product.name}
                     fill
                     className="object-cover"
                     priority={activeImage === 0}
@@ -269,11 +275,11 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
               </motion.div>
 
               {/* Thumbnails */}
-              {product.images.length > 1 && (
+              {displayImages.length > 1 && (
                 <div className="flex gap-3">
-                  {product.images.map((img, i) => (
+                  {displayImages.map((img, i) => (
                     <button
-                      key={i}
+                      key={`${selectedColor || 'default'}-${i}`}
                       onClick={() => setActiveImage(i)}
                       className={`w-14 h-14 sm:w-16 sm:h-16 relative bg-linen overflow-hidden border-2 transition-all duration-200 touch-target ${
                         activeImage === i ? 'border-terracotta' : 'border-transparent hover:border-stone'
@@ -321,7 +327,8 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                           key={color}
                           onClick={() => {
                             setSelectedColor(color);
-                            setSelectedSize(null); // Reset size when color changes
+                            setSelectedSize(null);
+                            setActiveImage(0);
                           }}
                           className={`flex items-center gap-2.5 px-4 py-2.5 font-rajdhani font-bold text-[0.8rem] tracking-widest border transition-all duration-200 uppercase ${
                             isSelected

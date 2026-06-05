@@ -19,6 +19,7 @@ export interface Product {
   price: number;
   description: string;
   images: string[];
+  color_images?: Record<string, string[]>;
   fabric_info: string;
   fit_notes: string;
   is_active: boolean;
