@@ -13,7 +13,24 @@ export function getRazorpayKeySecret(): string {
   return keySecret;
 }
 
+/** Ensures server and client use the same Razorpay key pair before calling the API. */
+export function assertRazorpayConfig(): void {
+  const keyId = getRazorpayKeyId();
+  const publicKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+  if (publicKeyId && publicKeyId !== keyId) {
+    throw new Error(
+      'RAZORPAY_KEY_ID and NEXT_PUBLIC_RAZORPAY_KEY_ID must match. Update both in your environment settings.',
+    );
+  }
+
+  if (!keyId.startsWith('rzp_test_') && !keyId.startsWith('rzp_live_')) {
+    throw new Error('RAZORPAY_KEY_ID must start with rzp_test_ or rzp_live_.');
+  }
+}
+
 export function getRazorpayClient(): Razorpay {
+  assertRazorpayConfig();
   return new Razorpay({
     key_id: getRazorpayKeyId(),
     key_secret: getRazorpayKeySecret(),

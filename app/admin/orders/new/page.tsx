@@ -225,6 +225,10 @@ export default function NewManualOrderPage() {
       setToast({ message: 'Name and phone are required', variant: 'error' });
       return;
     }
+    if (!email.trim()) {
+      setToast({ message: 'Email is required — receipt is sent automatically', variant: 'error' });
+      return;
+    }
     if (cart.length === 0) {
       setToast({ message: 'Add at least one item', variant: 'error' });
       return;
@@ -236,7 +240,7 @@ export default function NewManualOrderPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customer: { name, phone, email: email || undefined, city, address: address || undefined },
+          customer: { name, phone, email: email.trim(), city, address: address || undefined },
           items: cart.map(({ productId, productName, size, color, price, quantity: qty }) => ({
             productId,
             productName,
@@ -269,9 +273,15 @@ export default function NewManualOrderPage() {
         return;
       }
 
+      let message = `Order #${data.orderNumber} created`;
+      if (data.emailSent) {
+        message += ` · receipt sent to ${email.trim()}`;
+      } else if (data.emailError) {
+        message += ` · receipt email failed: ${data.emailError}`;
+      }
       setToast({
-        message: `Order #${data.orderNumber} created successfully`,
-        variant: 'success',
+        message,
+        variant: data.emailSent ? 'success' : 'error',
       });
       setTimeout(() => router.push(`/admin/orders/${data.orderId}`), 1500);
     } catch {
@@ -322,8 +332,18 @@ export default function NewManualOrderPage() {
                   <input required value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} className={inputCls} placeholder="9810123456" inputMode="numeric" />
                 </div>
                 <div>
-                  <FieldLabel>Email</FieldLabel>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="optional@email.com" />
+                  <FieldLabel>Email *</FieldLabel>
+                  <input
+                    required
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={inputCls}
+                    placeholder="customer@email.com"
+                  />
+                  <p className="font-mono text-[0.58rem] text-ink/55 mt-1.5">
+                    Receipt is emailed automatically, same as website orders.
+                  </p>
                 </div>
                 <div>
                   <FieldLabel>City</FieldLabel>

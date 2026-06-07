@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Script from 'next/script';
 import { loadRazorpayScript } from '@/lib/load-razorpay';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -223,10 +222,6 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-paper selection:bg-terracotta selection:text-white">
-      <Script
-        src="https://checkout.razorpay.com/v1/checkout.js"
-        strategy="afterInteractive"
-      />
 
       <StoreNav />
 

@@ -85,7 +85,13 @@ export async function confirmPaidOrder(
     .update({ last_ordered_at: new Date().toISOString() })
     .eq('id', order.customer_id);
 
-  await sendOrderEmails(orderId, order);
+  const emailResult = await sendOrderEmails(orderId, {
+    ...order,
+    payment_status: 'paid',
+  });
+  if (!emailResult.customerSent && emailResult.error) {
+    console.error('[confirm-paid-order] Receipt email failed:', emailResult.error);
+  }
 
   return { ok: true, orderNumber: order.order_number };
 }

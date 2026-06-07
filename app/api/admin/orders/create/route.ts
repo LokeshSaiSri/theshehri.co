@@ -76,6 +76,13 @@ export async function POST(req: NextRequest) {
     if (!customer?.phone?.trim() || !/^[6-9]\d{9}$/.test(customer.phone.trim())) {
       return NextResponse.json({ error: 'Valid 10-digit phone number is required' }, { status: 400 });
     }
+    const customerEmail = customer.email?.trim() || '';
+    if (!customerEmail) {
+      return NextResponse.json({ error: 'Customer email is required to send the order receipt' }, { status: 400 });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+      return NextResponse.json({ error: 'Enter a valid customer email address' }, { status: 400 });
+    }
     if (!items?.length) {
       return NextResponse.json({ error: 'Add at least one item to the order' }, { status: 400 });
     }
@@ -152,7 +159,7 @@ export async function POST(req: NextRequest) {
         {
           name: customer.name.trim(),
           phone: customer.phone.trim(),
-          email: customer.email?.trim() || null,
+          email: customerEmail,
           address_line1: customerAddress.address_line1,
           address_line2: customerAddress.address_line2,
           city: customerAddress.city,
@@ -246,25 +253,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Order created but could not be loaded' }, { status: 500 });
     }
 
-    if (paymentStatus === 'paid' && customer.email?.trim()) {
-      try {
-        await sendOrderEmails(order.id, {
-          order_number: fullOrder.order_number,
-          subtotal: fullOrder.subtotal,
-          shipping: fullOrder.shipping,
-          total: fullOrder.total,
-          delivery_note: fullOrder.delivery_note,
-          customer: fullOrder.customer,
-          items: fullOrder.items,
-        });
-      } catch (emailErr) {
-        console.error('[admin/orders/create] Email error:', emailErr);
+    let emailSent = false;
+    let emailError: string | undefined;
+
+    try {
+      const emailResult = await sendOrderEmails(order.id, {
+        order_number: fullOrder.order_number,
+        subtotal: fullOrder.subtotal,
+        shipping: fullOrder.shipping,
+        total: fullOrder.total,
+        delivery_note: fullOrder.delivery_note,
+        payment_status: paymentStatus,
+        customer: fullOrder.customer,
+        items: fullOrder.items,
+      });
+      emailSent = emailResult.customerSent;
+      emailError = emailResult.error;
+      if (!emailResult.customerSent && emailResult.error) {
+        console.error('[admin/orders/create] Receipt email failed:', emailResult.error);
       }
+    } catch (emailErr) {
+      console.error('[admin/orders/create] Email error:', emailErr);
+      emailError = emailErr instanceof Error ? emailErr.message : 'Failed to send receipt email';
     }
 
     return NextResponse.json({
       orderId: order.id,
       orderNumber,
+      emailSent,
+      emailError,
     });
   } catch (error) {
     console.error('[admin/orders/create]', error);

@@ -9,10 +9,11 @@ export type OrderEmailPayload = {
   shipping: number;
   total: number;
   delivery_note: string | null;
+  payment_status?: 'paid' | 'pending';
   customer: {
     name: string;
     phone: string;
-    email: string;
+    email: string | null;
     address_line1: string;
     address_line2: string | null;
     city: string;
@@ -28,12 +29,31 @@ export type OrderEmailPayload = {
   }[];
 };
 
+export type SendOrderEmailsResult = {
+  customerSent: boolean;
+  ownerSent: boolean;
+  error?: string;
+};
+
 export async function sendOrderEmails(
   orderId: string,
   order: OrderEmailPayload
-): Promise<void> {
-  if (!process.env.RESEND_API_KEY || !process.env.SENDER_EMAIL) return;
-  if (!order.customer.email?.trim()) return;
+): Promise<SendOrderEmailsResult> {
+  if (!process.env.RESEND_API_KEY || !process.env.SENDER_EMAIL) {
+    return {
+      customerSent: false,
+      ownerSent: false,
+      error: 'Email is not configured (RESEND_API_KEY / SENDER_EMAIL)',
+    };
+  }
+
+  const customerEmail = order.customer.email?.trim();
+  if (!customerEmail) {
+    return { customerSent: false, ownerSent: false, error: 'Customer email is missing' };
+  }
+
+  const isPaid = order.payment_status !== 'pending';
+  const totalLabel = isPaid ? 'Total Paid' : 'Total';
 
   const itemLines = order.items
     .map(
@@ -153,7 +173,7 @@ export async function sendOrderEmails(
           <td style="font-size:12px;color:#191714;font-family:monospace;text-align:right;">${order.shipping === 0 ? 'FREE' : '₹' + order.shipping}</td>
         </tr>
         <tr>
-          <td style="font-size:14px;font-weight:bold;color:#191714;font-family:monospace;padding-top:10px;">Total Paid</td>
+          <td style="font-size:14px;font-weight:bold;color:#191714;font-family:monospace;padding-top:10px;">${totalLabel}</td>
           <td style="font-size:14px;font-weight:bold;color:#C04E18;font-family:monospace;text-align:right;padding-top:10px;">₹${Number(order.total).toLocaleString('en-IN')}</td>
         </tr>
       </table>
@@ -174,6 +194,9 @@ export async function sendOrderEmails(
 </html>`;
 
   const FROM = `The Shehri Co. <${process.env.SENDER_EMAIL}>`;
+  let ownerSent = false;
+  let customerSent = false;
+  let error: string | undefined;
 
   if (process.env.OWNER_EMAIL) {
     const ownerResult = await resend.emails.send({
@@ -184,16 +207,24 @@ export async function sendOrderEmails(
     });
     if (ownerResult.error) {
       console.error('[send-order-emails] Owner email error:', ownerResult.error);
+      error = ownerResult.error.message;
+    } else {
+      ownerSent = true;
     }
   }
 
   const customerResult = await resend.emails.send({
     from: FROM,
-    to: [order.customer.email.trim()],
+    to: [customerEmail],
     subject: `✓ Order Confirmed: ${order.order_number} — The Shehri Co.`,
     html: customerEmailHtml,
   });
   if (customerResult.error) {
     console.error('[send-order-emails] Customer email error:', customerResult.error);
+    error = customerResult.error.message;
+  } else {
+    customerSent = true;
   }
+
+  return { customerSent, ownerSent, error };
 }

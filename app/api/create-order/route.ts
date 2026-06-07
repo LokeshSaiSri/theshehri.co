@@ -77,7 +77,17 @@ export async function POST(req: NextRequest) {
         : 500;
 
     if (statusCode === 401) {
-      return NextResponse.json({ error: 'Razorpay authentication failed' }, { status: 401 });
+      return NextResponse.json(
+        {
+          error:
+            'Razorpay authentication failed. In Vercel → Settings → Environment Variables, set RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, and NEXT_PUBLIC_RAZORPAY_KEY_ID to the same live key pair from Razorpay Dashboard → Settings → API Keys, then redeploy.',
+        },
+        { status: 401 },
+      );
+    }
+
+    if (error instanceof Error && error.message.includes('RAZORPAY')) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ error: 'Failed to create Razorpay order' }, { status: 500 });
