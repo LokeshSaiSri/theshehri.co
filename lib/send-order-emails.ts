@@ -3,6 +3,17 @@ import { SITE_CONTACT } from '@/lib/site-contact';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
+function formatResendError(message: string): string {
+  if (message.includes('domain') && message.includes('not verified')) {
+    return (
+      'Resend sender domain is not verified. In resend.com go to Domains → add theshehri.co → ' +
+      'add the DNS records at your registrar → wait for Verified. Then create a new Full Access API key, ' +
+      'set RESEND_API_KEY and SENDER_EMAIL=noreply@theshehri.co in Vercel (and .env.local), and redeploy.'
+    );
+  }
+  return message;
+}
+
 function discountEmailRow(discount: number): string {
   if (!discount || discount <= 0) return '';
   return `<tr>
@@ -219,7 +230,7 @@ export async function sendOrderEmails(
     });
     if (ownerResult.error) {
       console.error('[send-order-emails] Owner email error:', ownerResult.error);
-      error = ownerResult.error.message;
+      error = formatResendError(ownerResult.error.message);
     } else {
       ownerSent = true;
     }
@@ -233,7 +244,7 @@ export async function sendOrderEmails(
   });
   if (customerResult.error) {
     console.error('[send-order-emails] Customer email error:', customerResult.error);
-    error = customerResult.error.message;
+    error = formatResendError(customerResult.error.message);
   } else {
     customerSent = true;
   }

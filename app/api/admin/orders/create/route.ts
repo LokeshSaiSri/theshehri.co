@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getVariantAvailability, reserveOrderItems, releaseOrderItems } from '@/lib/inventory';
-import { generateOrderNumber } from '@/lib/generate-order-number';
+import { generateOrderNumber, isDuplicateOrderNumberError } from '@/lib/generate-order-number';
 import { sendOrderEmails } from '@/lib/send-order-emails';
 import { getShippingSettings } from '@/lib/shipping-settings';
 import { calculateShipping, settingsToConfig } from '@/lib/shipping';
@@ -202,30 +202,48 @@ export async function POST(req: NextRequest) {
 
     if (customerError) throw customerError;
 
-    const orderNumber = await generateOrderNumber(supabase);
+    const orderPayload = {
+      customer_id: customerData.id,
+      status,
+      payment_status: paymentStatus,
+      payment_method: paymentMethod,
+      source: 'manual',
+      fulfillment_type: fulfillmentType,
+      source_note: sourceNote?.trim() || null,
+      subtotal,
+      shipping,
+      discount: orderDiscount,
+      total,
+      delivery_note: sourceNote?.trim() || null,
+      delivered_at: status === 'delivered' ? now : null,
+    };
 
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        order_number: orderNumber,
-        customer_id: customerData.id,
-        status,
-        payment_status: paymentStatus,
-        payment_method: paymentMethod,
-        source: 'manual',
-        fulfillment_type: fulfillmentType,
-        source_note: sourceNote?.trim() || null,
-        subtotal,
-        shipping,
-        discount: orderDiscount,
-        total,
-        delivery_note: sourceNote?.trim() || null,
-        delivered_at: status === 'delivered' ? now : null,
-      })
-      .select('id')
-      .single();
+    let order: { id: string } | null = null;
+    let orderNumber = '';
 
-    if (orderError) throw orderError;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      orderNumber = await generateOrderNumber(supabase);
+      const { data, error: orderError } = await supabase
+        .from('orders')
+        .insert({ ...orderPayload, order_number: orderNumber })
+        .select('id')
+        .single();
+
+      if (!orderError && data) {
+        order = data;
+        break;
+      }
+
+      if (orderError && isDuplicateOrderNumberError(orderError) && attempt < 4) {
+        continue;
+      }
+
+      throw orderError;
+    }
+
+    if (!order) {
+      return NextResponse.json({ error: 'Could not allocate a unique order number' }, { status: 500 });
+    }
 
     const orderItemsPayload = items.map((item) => ({
       order_id: order.id,
