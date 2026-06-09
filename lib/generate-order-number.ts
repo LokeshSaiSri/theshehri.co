@@ -30,10 +30,10 @@ export async function generateOrderNumber(supabase: SupabaseClient): Promise<str
 export function isDuplicateOrderNumberError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
   const e = error as { code?: string; message?: string; details?: string };
-  return (
-    e.code === '23505' &&
-    (e.message?.includes('orders_order_number_key') ||
-      e.details?.includes('order_number') ||
-      e.message?.includes('order_number'))
-  );
+  const mentionsOrderNumber =
+    e.message?.includes('orders_order_number_key') ||
+    e.details?.includes('order_number') ||
+    e.message?.includes('order_number');
+
+  return e.code === '23505' && Boolean(mentionsOrderNumber);
 }
