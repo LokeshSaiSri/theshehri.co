@@ -30,6 +30,7 @@ type CartLine = {
   productName: string;
   size: string;
   color: string | null;
+  listPrice: number;
   price: number;
   quantity: number;
 };
@@ -77,6 +78,7 @@ export default function NewManualOrderPage() {
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [unitPrice, setUnitPrice] = useState<number | ''>('');
   const [availableStock, setAvailableStock] = useState<number | null>(null);
   const [stockLoading, setStockLoading] = useState(false);
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -84,6 +86,7 @@ export default function NewManualOrderPage() {
   // Payment
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'upi'>('cash');
   const [paymentStatus, setPaymentStatus] = useState<'paid' | 'pending'>('paid');
+  const [discount, setDiscount] = useState<number | ''>(0);
   const [amountReceived, setAmountReceived] = useState<number | ''>('');
 
   // Fulfillment
@@ -155,29 +158,42 @@ export default function NewManualOrderPage() {
     setSelectedSize('');
     setSelectedColor(null);
     setQuantity(1);
-  }, [selectedProductId]);
+    setUnitPrice(selectedProduct?.price ?? '');
+  }, [selectedProductId, selectedProduct?.price]);
 
   useEffect(() => {
     setSelectedColor(colorOptions.length === 1 ? colorOptions[0] : null);
   }, [selectedSize, colorOptions]);
 
+  const listSubtotal = cart.reduce((s, i) => s + i.listPrice * i.quantity, 0);
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const itemSavings = Math.max(0, listSubtotal - subtotal);
   const shippingConfig = settingsToConfig(shippingSettings);
   const shipping =
     fulfillment === 'instagram_speed_post'
       ? calculateShipping(subtotal, shippingConfig)
       : 0;
-  const calculatedTotal = subtotal + shipping;
+  const orderDiscount = discount === '' ? 0 : Math.max(0, discount);
+  const calculatedTotal = Math.max(0, subtotal + shipping - orderDiscount);
 
   useEffect(() => {
-    if (amountReceived === '' || amountReceived === calculatedTotal) {
+    if (paymentStatus === 'paid') {
       setAmountReceived(calculatedTotal);
     }
-  }, [calculatedTotal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [calculatedTotal, paymentStatus]);
+
+  function updateLinePrice(key: string, price: number) {
+    setCart((prev) =>
+      prev.map((i) => (i.key === key ? { ...i, price: Math.max(0, price) } : i)),
+    );
+  }
 
   function addItem() {
     if (!selectedProduct || !selectedSize) return;
     if (availableStock !== null && availableStock < quantity) return;
+
+    const salePrice =
+      unitPrice === '' ? selectedProduct.price : Math.max(0, Number(unitPrice));
 
     const variant = sortVariants(
       selectedProduct.variants.filter(
@@ -205,7 +221,8 @@ export default function NewManualOrderPage() {
           productName: selectedProduct.name,
           size: selectedSize,
           color,
-          price: selectedProduct.price,
+          listPrice: selectedProduct.price,
+          price: salePrice,
           quantity,
         },
       ];
@@ -251,6 +268,7 @@ export default function NewManualOrderPage() {
           })),
           paymentMethod,
           paymentStatus,
+          discount: orderDiscount,
           amountReceived: amountReceived === '' ? calculatedTotal : Number(amountReceived),
           fulfillment,
           shippingAddress:
@@ -421,6 +439,25 @@ export default function NewManualOrderPage() {
                         className={inputCls}
                       />
                     </div>
+                    <div>
+                      <FieldLabel>Sale price (per unit)</FieldLabel>
+                      <input
+                        type="number"
+                        min={0}
+                        value={unitPrice}
+                        onChange={(e) =>
+                          setUnitPrice(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))
+                        }
+                        disabled={!selectedProduct}
+                        className={inputCls}
+                        placeholder={selectedProduct ? String(selectedProduct.price) : '—'}
+                      />
+                      {selectedProduct && unitPrice !== '' && Number(unitPrice) < selectedProduct.price && (
+                        <p className="font-mono text-[0.62rem] text-terracotta mt-1">
+                          {fmt(selectedProduct.price - Number(unitPrice))} off list price
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {selectedSize && (
@@ -475,16 +512,35 @@ export default function NewManualOrderPage() {
                 </div>
               </div>
               <div>
+                <FieldLabel>Order discount (₹)</FieldLabel>
+                <input
+                  type="number"
+                  min={0}
+                  max={subtotal + shipping}
+                  value={discount}
+                  onChange={(e) =>
+                    setDiscount(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))
+                  }
+                  className={inputCls}
+                />
+                <p className="font-mono text-[0.65rem] text-ink/50 mt-1">
+                  Extra off the whole order — stall deals, Instagram offers, etc.
+                </p>
+              </div>
+              <div>
                 <FieldLabel>Amount received</FieldLabel>
                 <input
                   type="number"
                   min={0}
                   value={amountReceived}
                   onChange={(e) => setAmountReceived(e.target.value === '' ? '' : Number(e.target.value))}
-                  className={inputCls}
+                  disabled={paymentStatus === 'paid'}
+                  className={`${inputCls} disabled:opacity-60`}
                 />
                 <p className="font-mono text-[0.65rem] text-ink/50 mt-1">
-                  Pre-filled with total — edit for partial payment or discount
+                  {paymentStatus === 'paid'
+                    ? 'Matches total after discount'
+                    : 'Edit for partial payment on pending orders'}
                 </p>
               </div>
             </section>
@@ -560,7 +616,22 @@ export default function NewManualOrderPage() {
                         <p className="font-mono text-[0.65rem] text-ink/60">
                           {item.color ? `${item.color} · ` : ''}Size {item.size} · Qty {item.quantity}
                         </p>
-                        <p className="font-mono text-[0.72rem] text-ink/80">{fmt(item.price * item.quantity)}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="font-mono text-[0.62rem] text-ink/50">₹/unit</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={item.price}
+                            onChange={(e) => updateLinePrice(item.key, Number(e.target.value))}
+                            className="w-20 bg-[#F9FAFB] border border-[#E5E7EB] rounded px-2 py-1 font-mono text-[0.68rem]"
+                          />
+                          {item.price < item.listPrice && (
+                            <span className="font-mono text-[0.6rem] text-ink/40 line-through">
+                              {fmt(item.listPrice)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-mono text-[0.72rem] text-ink/80 mt-1">{fmt(item.price * item.quantity)}</p>
                       </div>
                       <button
                         type="button"
@@ -576,10 +647,22 @@ export default function NewManualOrderPage() {
               )}
 
               <div className="space-y-2 pt-2 border-t border-[#E5E7EB]">
+                {itemSavings > 0 && (
+                  <div className="flex justify-between font-mono text-[0.72rem]">
+                    <span className="text-ink/50">List subtotal</span>
+                    <span className="text-ink/50 line-through">{fmt(listSubtotal)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-mono text-[0.75rem]">
                   <span className="text-ink/60">Subtotal</span>
                   <span>{fmt(subtotal)}</span>
                 </div>
+                {itemSavings > 0 && (
+                  <div className="flex justify-between font-mono text-[0.72rem] text-terracotta">
+                    <span>Item savings</span>
+                    <span>−{fmt(itemSavings)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-mono text-[0.75rem]">
                   <span className="text-ink/60">Shipping</span>
                   <span>
@@ -590,6 +673,12 @@ export default function NewManualOrderPage() {
                         : fmt(shipping)}
                   </span>
                 </div>
+                {orderDiscount > 0 && (
+                  <div className="flex justify-between font-mono text-[0.75rem] text-terracotta">
+                    <span>Discount</span>
+                    <span>−{fmt(orderDiscount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-rajdhani font-bold text-[0.85rem] pt-2 border-t border-[#E5E7EB]">
                   <span>Total</span>
                   <span className="text-terracotta">{fmt(calculatedTotal)}</span>

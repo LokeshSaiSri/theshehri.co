@@ -17,6 +17,7 @@ import {
   updateVariant,
   type ProductEditorData,
 } from '@/lib/product-editor';
+import { STANDARD_SIZES } from '@/lib/sizes';
 
 interface Product {
   id: string;
@@ -44,8 +45,6 @@ const DEFAULT_PRODUCT: Product = {
   is_active: true,
   drop_id: null,
 };
-
-const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size'];
 
 export default function AdminProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

@@ -3,10 +3,19 @@ import { SITE_CONTACT } from '@/lib/site-contact';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
+function discountEmailRow(discount: number): string {
+  if (!discount || discount <= 0) return '';
+  return `<tr>
+          <td style="font-size:12px;color:#888;font-family:monospace;padding:3px 0;">Discount</td>
+          <td style="font-size:12px;color:#C04E18;font-family:monospace;text-align:right;padding:3px 0;">−₹${Number(discount).toLocaleString('en-IN')}</td>
+        </tr>`;
+}
+
 export type OrderEmailPayload = {
   order_number: string;
   subtotal: number;
   shipping: number;
+  discount?: number;
   total: number;
   delivery_note: string | null;
   payment_status?: 'paid' | 'pending';
@@ -54,6 +63,7 @@ export async function sendOrderEmails(
 
   const isPaid = order.payment_status !== 'pending';
   const totalLabel = isPaid ? 'Total Paid' : 'Total';
+  const discountRow = discountEmailRow(order.discount ?? 0);
 
   const itemLines = order.items
     .map(
@@ -111,6 +121,7 @@ export async function sendOrderEmails(
           <td style="font-size:12px;color:#888;font-family:monospace;padding:3px 0;">Shipping</td>
           <td style="font-size:12px;color:#191714;font-family:monospace;text-align:right;padding:3px 0;">${order.shipping === 0 ? 'FREE' : '₹' + order.shipping}</td>
         </tr>
+        ${discountRow}
         <tr>
           <td style="font-size:14px;font-weight:bold;color:#191714;font-family:monospace;padding-top:8px;">TOTAL</td>
           <td style="font-size:14px;font-weight:bold;color:#C04E18;font-family:monospace;text-align:right;padding-top:8px;">₹${Number(order.total).toLocaleString('en-IN')}</td>
@@ -172,6 +183,7 @@ export async function sendOrderEmails(
           <td style="font-size:12px;color:#888;font-family:monospace;padding:3px 0;">Shipping</td>
           <td style="font-size:12px;color:#191714;font-family:monospace;text-align:right;">${order.shipping === 0 ? 'FREE' : '₹' + order.shipping}</td>
         </tr>
+        ${discountRow}
         <tr>
           <td style="font-size:14px;font-weight:bold;color:#191714;font-family:monospace;padding-top:10px;">${totalLabel}</td>
           <td style="font-size:14px;font-weight:bold;color:#C04E18;font-family:monospace;text-align:right;padding-top:10px;">₹${Number(order.total).toLocaleString('en-IN')}</td>

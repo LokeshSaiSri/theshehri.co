@@ -1,6 +1,6 @@
 import { supabase } from './supabase/client';
 
-export type Size = 'S' | 'M' | 'L' | 'XL';
+export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | '3XL' | 'Free Size';
 
 export interface ProductVariant {
   id: string;

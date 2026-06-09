@@ -1,6 +1,17 @@
 import type { ProductVariant, Size } from './products';
 
-export const SIZE_ORDER: readonly Size[] = ['S', 'M', 'L', 'XL'];
+export const STANDARD_SIZES: readonly Size[] = [
+  'XS',
+  'S',
+  'M',
+  'L',
+  'XL',
+  'XXL',
+  '3XL',
+  'Free Size',
+];
+
+export const SIZE_ORDER: readonly Size[] = STANDARD_SIZES;
 
 export function compareSizes(a: string, b: string): number {
   const indexA = SIZE_ORDER.indexOf(a as Size);

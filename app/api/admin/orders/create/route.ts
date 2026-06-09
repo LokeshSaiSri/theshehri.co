@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       paymentStatus,
       amountReceived,
+      discount,
       fulfillment,
       shippingAddress,
       sourceNote,
@@ -58,7 +59,8 @@ export async function POST(req: NextRequest) {
       items: ManualItem[];
       paymentMethod: 'cash' | 'upi';
       paymentStatus: 'paid' | 'pending';
-      amountReceived: number;
+      amountReceived?: number;
+      discount?: number;
       fulfillment: FulfillmentOption;
       shippingAddress?: {
         name: string;
@@ -119,6 +121,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    for (const item of items) {
+      if (typeof item.price !== 'number' || item.price < 0) {
+        return NextResponse.json({ error: 'Each item needs a valid sale price' }, { status: 400 });
+      }
+    }
+
     const subtotal = items.reduce((sum, i) => sum + i.price * (i.quantity ?? 1), 0);
     const settings = await getShippingSettings();
     const shippingConfig = settingsToConfig(settings);
@@ -128,7 +136,28 @@ export async function POST(req: NextRequest) {
       shipping = calculateShipping(subtotal, shippingConfig);
     }
 
-    const total = Math.max(0, Math.round(Number(amountReceived) || subtotal + shipping));
+    const orderDiscount = Math.max(0, Math.round(Number(discount) || 0));
+    const dueTotal = Math.max(0, subtotal + shipping - orderDiscount);
+
+    if (orderDiscount > subtotal + shipping) {
+      return NextResponse.json({ error: 'Discount cannot exceed subtotal + shipping' }, { status: 400 });
+    }
+
+    const received = amountReceived != null ? Math.round(Number(amountReceived)) : dueTotal;
+    if (received < 0) {
+      return NextResponse.json({ error: 'Amount received cannot be negative' }, { status: 400 });
+    }
+    if (paymentStatus === 'paid' && received !== dueTotal) {
+      return NextResponse.json(
+        { error: `Paid orders must match total after discount (${dueTotal})` },
+        { status: 400 },
+      );
+    }
+    if (paymentStatus === 'pending' && received > dueTotal) {
+      return NextResponse.json({ error: 'Amount received cannot exceed order total' }, { status: 400 });
+    }
+
+    const total = dueTotal;
     const fulfillmentType = resolveFulfillmentType(fulfillment);
     const status = resolveOrderStatus(fulfillment, paymentStatus);
     const now = new Date().toISOString();
@@ -188,6 +217,7 @@ export async function POST(req: NextRequest) {
         source_note: sourceNote?.trim() || null,
         subtotal,
         shipping,
+        discount: orderDiscount,
         total,
         delivery_note: sourceNote?.trim() || null,
         delivered_at: status === 'delivered' ? now : null,
@@ -261,6 +291,7 @@ export async function POST(req: NextRequest) {
         order_number: fullOrder.order_number,
         subtotal: fullOrder.subtotal,
         shipping: fullOrder.shipping,
+        discount: fullOrder.discount ?? 0,
         total: fullOrder.total,
         delivery_note: fullOrder.delivery_note,
         payment_status: paymentStatus,

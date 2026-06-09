@@ -13,7 +13,7 @@ interface OrderItem {
 }
 interface OrderDetail {
   id: string; order_number: string; status: string; payment_status: string;
-  subtotal: number; shipping: number; total: number; created_at: string;
+  subtotal: number; shipping: number; discount?: number; total: number; created_at: string;
   tracking_number: string | null; tracking_url: string | null;
   admin_notes: string | null; delivery_note: string | null;
   razorpay_order_id: string; razorpay_payment_id: string;
@@ -127,6 +127,9 @@ export default function AdminOrderDetail({ params }: { params: Promise<{ id: str
             <div className="px-5 py-4 bg-[#FFFFFF] space-y-2">
               <div className="flex justify-between"><span className="font-mono text-[0.72rem] text-ink/80">Subtotal</span><span className="font-mono text-[0.75rem]">{fmt(order.subtotal)}</span></div>
               <div className="flex justify-between"><span className="font-mono text-[0.72rem] text-ink/80">Shipping</span><span className="font-mono text-[0.75rem]">{order.shipping === 0 ? 'FREE' : fmt(order.shipping)}</span></div>
+              {(order.discount ?? 0) > 0 && (
+                <div className="flex justify-between"><span className="font-mono text-[0.72rem] text-terracotta">Discount</span><span className="font-mono text-[0.75rem] text-terracotta">−{fmt(order.discount!)}</span></div>
+              )}
               <div className="flex justify-between pt-2 border-t border-[#E5E7EB]">
                 <span className="font-rajdhani font-bold text-[0.75rem] text-[#191714] uppercase">Total</span>
                 <span className="font-mono text-[0.9rem] text-terracotta font-bold">{fmt(order.total)}</span>

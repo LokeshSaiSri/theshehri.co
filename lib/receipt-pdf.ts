@@ -6,6 +6,7 @@ export type ReceiptOrder = {
   created_at: string;
   subtotal: number;
   shipping: number;
+  discount?: number;
   total: number;
   payment_method: string | null;
   payment_status: string;
@@ -101,7 +102,16 @@ function drawReceipt(doc: jsPDF, order: ReceiptOrder) {
   y += 5;
   doc.text('Shipping:', totalsX, y);
   doc.text(order.shipping === 0 ? 'Free' : fmt(order.shipping), pageW - margin, y, { align: 'right' });
-  y += 6;
+  y += 5;
+  if (order.discount && order.discount > 0) {
+    doc.text('Discount:', totalsX, y);
+    doc.setTextColor(192, 78, 24);
+    doc.text(`-${fmt(order.discount)}`, pageW - margin, y, { align: 'right' });
+    doc.setTextColor(25, 23, 20);
+    y += 6;
+  } else {
+    y += 1;
+  }
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.text('Total:', totalsX, y);
@@ -135,6 +145,7 @@ export function orderToReceipt(order: {
   created_at: string;
   subtotal: number;
   shipping: number;
+  discount?: number;
   total: number;
   payment_method?: string | null;
   payment_status: string;
@@ -145,6 +156,7 @@ export function orderToReceipt(order: {
     created_at: order.created_at,
     subtotal: order.subtotal,
     shipping: order.shipping,
+    discount: order.discount ?? 0,
     total: order.total,
     payment_method: order.payment_method ?? null,
     payment_status: order.payment_status,

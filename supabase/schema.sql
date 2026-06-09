@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS product_variants (
   id          uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   product_id  uuid REFERENCES products(id) ON DELETE CASCADE,
-  size        text NOT NULL CHECK (size IN ('S', 'M', 'L', 'XL')),
+  size        text NOT NULL CHECK (size IN ('XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size')),
   stock       int DEFAULT 0,
   reserved    int DEFAULT 0,
   sku         text UNIQUE,
@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS orders (
   razorpay_signature   text,
   subtotal             int NOT NULL,
   shipping             int NOT NULL DEFAULT 199,
+  discount             int NOT NULL DEFAULT 0,
   total                int NOT NULL,
   delivery_note        text,
   tracking_number      text,

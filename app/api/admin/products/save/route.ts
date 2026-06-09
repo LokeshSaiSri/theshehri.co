@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
+import { STANDARD_SIZES } from '@/lib/sizes';
+
+const ALLOWED_SIZES = new Set<string>(STANDARD_SIZES);
 
 export async function POST(req: NextRequest) {
   const supabase = createServerClient();
@@ -91,6 +94,13 @@ export async function POST(req: NextRequest) {
     }
 
     for (const variant of safeVariants) {
+      if (!ALLOWED_SIZES.has(variant.size)) {
+        return NextResponse.json(
+          { error: `Invalid size "${variant.size}". Allowed: ${STANDARD_SIZES.join(', ')}` },
+          { status: 400 },
+        );
+      }
+
       const vData = {
         product_id: productId,
         size: variant.size,
